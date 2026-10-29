@@ -1,4 +1,4 @@
-#Constrained Shortest Path
+# Constrained Shortest Path
 
 Research codebase for developing and benchmarking novel exact algorithms for the Constrained Shortest Path Problem (CSP).
 
