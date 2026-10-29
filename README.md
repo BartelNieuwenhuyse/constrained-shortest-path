@@ -1,51 +1,88 @@
-## Introduction
+#Constrained Shortest Path
 
-Research into the constrained shortest path problem.
+Research codebase for developing and benchmarking novel exact algorithms for the Constrained Shortest Path Problem (CSP).
 
-Work in progress code for experimenting and benchmarking new propositions.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-blue)
 
-## Problem statement and terminology
+## Overview
 
-The constrained shortest path problem (CSP) in this context is the problem to find a minimum weight path from a source node to a terminal node. The weight of a path is the sum of the weights of the path's edges. Beside weights, each edge is associated with one or more additional scalars. The constrained shortest path problem places a constraint on the sum of each of these scalars along the optimal path. For one additional constraint, this additional dimension is called the delay of the path, as in the delay constrained least cost (DCLC) problem. This problem is also known as the restricted shortest path problem and weight constrained shortest path problem (WCSPP). Note the ambiguity with the latter: in our terminology, weight is the objective function to minimize and delay the constraint.  For two or more such constraints, the additional dimensions are called resources, as in the resource constrained shortest path problem (RCSPP).
+This repository is a vehicle for original algorithmic contributions to constrained shortest path optimization. It is not limited to reimplementing existing methods: the goal is to develop, validate, and benchmark new ideas that improve exact solvers.
 
-Solution strategies used in this research are label setting, lagrange relaxation and path ranking.
+The starting point is the delay-constrained least-cost problem (DCLC) — a single delay constraint — on layered directed acyclic graphs (DAGs). Extension to general graphs and multiple resources (RCSPP) is planned where the techniques permit.
 
-### Label setting 
+## Research
 
-Based on dynamic programming, a label is a tuple that encodes a partial path from the source to some node in the graph and is repeatedly expanded along edges. Pruning techniques fathom labels early if it can be proven that the partial path can not be completed to an optimal path. [Read more](docs/CSP/Labeling.md) about label setting and our contributions to it.
+Original contributions contained in this repository include:
 
-### Lagrange relaxation followed by path ranking. 
+|Category|Contributions|Status|
+|--------------|---------------------|----------|
+|Path ranking| Incremental k-shortest path algorithm on DAGs|Implemented|
+||Shortest path with forbidden edge combinations|In progress|
+||Knapsack cover cuts to forbid multiple paths during path ranking|In progress|
+|Topological label-setting|lazy on-demand expansion of the pareto frontier|In progress|
+|A* label setting|bounded queue growth by lazy on-demand expansion of the pareto frontier|In progress|
+|DFS label-setting|Backwards dominance pruning tightening traditional dominance|In progress| 
+||Completion equivalence pruning to fathom labels that share the same completion value|In progress|
+|Lagrange dual|primal-dual approximation|In progress|
 
-Lagrange relaxation reduced the bi- or multi dimensional constrained problem into a single cost function:
+Formal problem definitions and detailed algorithm descriptions live in [docs/](docs/). The implementation of each novel contribution lives in [src/](src/).
+
+## Status
+
+Actively under development, and best understood as a research prototype rather than a production-ready library. APIs and algorithmic components will evolve as the methods are refined and validated.
+
+## Repository structure
+
+- `src/` — implementation code of the novel contributions
+- `benchmarks/` — console apps for benchmarking, plus reference implementations
+- `docs/` — formal problem definitions and algorithm documentation
+
+## Getting started
+
+### Requirements
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download) (LTS)
+
+### Build
+
+Use the solution in benchmarks/ as the entry point:
 
 ```
-cost = weight + λ * delay
+dotnet build benchmarks/Benchmarks.sln
 ```
 
-For any none-negative value of the multiplier λ, the constrained shortest path is reduced to a simple shortest path problem. The solution of this shortest path gives a lower bound on the optimum of the original constrained shortest path problem. The problem of finding the highest lower bound is the Lagrange dual problem. Even with the best lower bound, there may exist a duality gap. Hence this technique is not an exact solver.
+### Run a benchmark
 
-To obtain the exact primal optimum, traditional methods closes the duality gap by path ranking. Path ranking enumerates k shortest paths of increasing cost until a path is found that can be proven to be optimal.
+Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to the file given as the first command-line argument.
 
-The k-shortest path problem is the problem of not finding the minimum cost path, but finding k paths of least cost. 
+```
+dotnet run --project benchmarks/ConstrainedShortestPath -- results.csv
+```
 
-The shortest path with forbidden paths problem is...
+### Build configurations
 
-Currently the research targets a single constraint (WCSPP) on directed acyclic graphs (DAG). More particularly on layered DAGs. Why layered DAGs? Because they have the form of Multivalued Decision Diagrams. See the motivating section for info. Extensions are planned to general graphs and multiple constraints where applicable. In our experiments, weight and the delay are both none negative integers.
+|Configuration|Intended use|
+|---------------------|---------------------|
+|`Debug`|Validation and correctness checks with assertions; suitable for smaller instances|
+|`Release`|Instrumentation and internal algorithm statistics, such as label counts|
+|`Benchmark`|Timing-oriented runs for comparing algorithm performance|
 
-## Contributions
+## Contributing
 
-We introduce the following contributions to solve the constrained shortest path problem. These are to are knowledge novel and not yet introduced in the research literature:
+This is a research project maintained on a best-effort basis. There is no response-time guarantee and no roadmap commitment. That said, several kinds of contribution are genuinely useful.
 
-We introduce two new pruning techniques that are used in a depth first label setting algorithm: a **tighter dominance pruning** that is calculated after all successors are visited and before backtracking and **completion equivalence pruning** which divides the delay space into intervals which have the same optimal path completion to the terminal.
+- *counter examples*: an instance where the solver returns a suboptimal or infeasible path or where the implementation disagrees with theory
+- *reference algorithms and comparisons*: if you know of a method this project ought to be compared against, or prior art the documentation overlooks, say so
+- *corrections to the documentation*: If an argument or explanation looks wrong or underspecified, an issue describing the gap is a real contribution.
 
-An **incremental k-shortest path on DAGs** is proposed. Where incremental means that the kth path can be generated from the solution of the k-1th path. The incremental idea of this algorithm is used in the constrained shortest path problem to device **two pull labeling algorithms**: one that traverses the DAG in topological  ordering, and the other in best-first A* ordering.
+For anything beyond a small fix, open an issue before opening a pull request.
 
-Using the idea behind the incremental k-shortest path on DAGs, we also device a solver for the shortest path with forbidden paths problem: first a minimal acyclic deterministic finite automaton (madfa) is created from the set of forbidden paths. This madfa structure is then used to find the shortest none forbidden path. We extend this to not only forbid sets of full source-to-terminal paths, but to **forbid sets of edge combinations**. This can be used as the backbone for path ranking: instead of ranking k paths, we propose to derive **cover cuts** from the paths: edge combinations that cannot be used together in the optimal path.
+## Citing
 
-## Project, configurations and benchmark setup
+There is no publication or DOI yet. If you need to cite this code or part of the docs, please open an issue describing your intended use, and a DOI will be considered by e.g. a tagged release via Zenodo.
 
-Console projects are available that generate random acyclic layered graphs with random weights and delays on edges. The projects come in three configurations: Debug, Release and Benchmark. 
+## License
 
-- Debug is used for testing. When running in debug, assertions are checking the correctness of the algorithms and the invariants and assumptions. Only relative small problems can be run in debug, as some test assertions may be heavy.
-- Release is used for instrumentation: e.g. counting the number of labels created during the algorithm run
-- Benchmark is used to measure clock time.
+MIT — see [LICENSE](LICENSE).
