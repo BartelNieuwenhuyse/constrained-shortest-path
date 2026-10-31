@@ -8,9 +8,9 @@ Research codebase for developing and benchmarking novel exact algorithms for the
 
 ## Overview
 
-This repository is a vehicle for original algorithmic contributions to constrained shortest path optimization. It is not limited to reimplementing existing methods: the goal is to develop, validate, and benchmark new ideas that improve exact solvers.
+This repository is dedicated to original algorithmic contributions to constrained shortest path optimization. It is not limited to reimplementing existing methods: the goal is to develop, validate, and benchmark new ideas that improve exact solvers.
 
-The starting point is the delay-constrained least-cost problem (DCLC) — a single delay constraint — on layered directed acyclic graphs (DAGs). Extension to general graphs and multiple resources (RCSPP) is planned where the techniques permit.
+The starting point is the delay-constrained least-cost problem (DCLC) — a single delay constraint — on layered acyclic multi-digraphs (DAG).  Extension to general graphs and multiple resources (RCSPP) is planned where the techniques permit.
 
 ## Research
 
@@ -18,14 +18,8 @@ Original contributions contained in this repository include:
 
 |Category|Contributions|Status|
 |--------------|---------------------|----------|
-|Path ranking| Incremental k-shortest path algorithm on DAGs|Implemented|
-||Shortest path with forbidden edge combinations|In progress|
-||Knapsack cover cuts to forbid multiple paths during path ranking|In progress|
-|Topological label-setting|lazy on-demand expansion of the pareto frontier|In progress|
-|A* label setting|bounded queue growth by lazy on-demand expansion of the pareto frontier|In progress|
 |DFS label-setting|Backwards dominance pruning tightening traditional dominance|In progress| 
 ||Completion equivalence pruning to fathom labels that share the same completion value|In progress|
-|Lagrange dual|primal-dual approximation|In progress|
 
 Formal problem definitions and detailed algorithm descriptions live in [docs/](docs/). The implementation of each novel contribution lives in [src/](src/).
 
@@ -49,7 +43,7 @@ Actively under development, and best understood as a research prototype rather t
 
 Use the solution in benchmarks/ as the entry point:
 
-```
+```bash
 dotnet build benchmarks/Benchmarks.sln
 ```
 
@@ -57,7 +51,7 @@ dotnet build benchmarks/Benchmarks.sln
 
 Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to the file given as the first command-line argument.
 
-```
+```bash
 dotnet run --project benchmarks/ConstrainedShortestPath -- results.csv
 ```
 
