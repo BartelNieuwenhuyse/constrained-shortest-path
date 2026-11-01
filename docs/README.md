@@ -4,7 +4,7 @@ This folder contains the formal problem definitions and algorithm documentation 
 
 ## Intent
 
-This documentation is intended to give readers who already have a good understanding of shortest path problems an overview of the original work that is being developed in this repository. It is not intended as an introduction to the problem or an overview of the state of the art.
+This documentation is intended for readers familiar with shortest path problems. It provides an overview of the original work that is being developed in this repository. It is not intended as an introduction to the problem or a state-of-the-art survey.
 
 ## Problem statement and terminology
 
@@ -13,15 +13,19 @@ The research focuses on the constrained shortest path problem (CSP), where the o
 Beside *weights* - the objective value-, each edge is associated with one or more scalars - the constraint values. The optimal path may not exceed a threshold on the sum of each of these scalars. For one constraint, the constraint dimension is called the *delay* of the path, as in the delay constrained least cost (DCLC) problem. This problem is also known as the  weight constrained shortest path problem (WCSPP). Note the ambiguity with the latter: in our terminology, weight is the objective function to minimize and delay the constraint. 
 
 $$
-min_{p\ \epsilon G}\ weight(p)\\
-s.t.\ delay(p)\ \leq\ D
+\begin{align}
+&min_{p \in G}\ weight(p)\\
+&s.t.\ delay(p)\ \leq\ D
+\end{align}
 $$
 
 For two or more constraints, the constraint dimensions are called resources, as in the resource constrained shortest path problem (RCSPP).
 
 $$
-min_{p\ \epsilon G}\ weight(p)\\
-s.t.\ resource_{i}(p)\ \leq\ R_{i}
+\begin{align}
+&min_{p \in G}\ weight(p)\\
+&s.t.\ resource_{i}(p)\ \leq\ R_{i}
+\end{align}
 $$
 
 The weight, delay and resource usage of a path are supposed to be the sum of the weight, delay, respectively resource usage of the edges constituting the path. The codebase works with none-negative integers for weight, delay and resource usage.
@@ -29,6 +33,46 @@ The weight, delay and resource usage of a path are supposed to be the sum of the
 Current focus is on one constraint (DCLC) on layered acyclic multi-digraphs (DAG). In such graphs, nodes are partitioned in layers and edges only connect nodes from layer $l$ to layer $l+1$. The top layer consists of only the source node and the bottom layer has only the terminal node. Such specific layered DAGs are a weighted extension of Decision Diagrams (DD) [Hooker, 2013] and may be constructed from the state-transition graph of recursive dynamic programming formulations [Bergman et al. 2021]. [Read more](Motivation.md) about our motivation to use layered DAGs.
 
 Where applicable, the code exploits the layered structure for better performance, smaller memory or simplicity. Unless specified, it is however not required for correctness of the algorithms. All algorithmic ideas extend to general DAGs when layer-by-layer traversal is replaced by topological ordering.
+
+Example:
+
+```mermaid
+flowchart LR
+    %% Source Node
+    S((s))
+
+    %% Layer 1
+    L1A((1))
+    L1B((2))
+
+    %% Layer 2  
+    L2A((3))
+    L2B((4))
+
+    %% Layer 3
+    L3A((5))
+
+    %% Terminal Node
+    T((t))
+
+    %% Edges
+    S -->|w=7,d=4| L1A
+    S -->|w=3,d=16| L1B
+
+    L1A -->|w=1,d=36| L2A
+    L1A -->|w=8,d=4| L2A
+
+    L1B -->|w=1,d=36| L2A
+    L1B -->|w=5,d=4| L2B
+
+    L2A -->|w=4,d=9| L3A
+    L2A -->|w=0,d=49| L3A
+
+    L2B -->|w=2,d=25| L3A
+
+    L3A -->|w=0,d=36| T
+    L3A -->|w=9,d=4| T
+```
 
 ## Solution strategies
 
@@ -47,20 +91,20 @@ The efficiency of label setting further depends on pruning rules. Pruning rules 
 ## Contributions
 
 The main methodological contributions currently explored are as follows.
-To are knowledge, these are novel and not yet introduced in the research literature.
+We are unaware of prior publications describing these specific  contributrions.
 
 ###  DFS label-setting
 
 We propose two new pruning rules that are used in label setting with a depth first exploration:
 
-- **Backwards dominance pruning** computed after successor exploration and before backtracking. This achieves stronger pruning by using information of the dominating labels at successor nodes instead of using the incoming label, like in traditional dominance pruning.
-- **Completion equivalence pruning** divides the delay space at a node into intervals of equal optimal weight completion. Labels that share the same completion value can be fathomed.
+- **Backwards dominance pruning**: computed after successor exploration and before backtracking. Achieves stronger pruning by leveraging dominating labels at successor nodes rather than the incoming label, like in traditional dominance pruning.
+- **Completion equivalence pruning**: partitions the delay space at each node into intervals sharing the same optimal completion weight. Labels falling within the same interval can be fathomed.
 
 ## Documentation structure
 
 - `CSP/` — documentation for the constrained shortest path problem
 	- [`Labeling.md`](CSP/Labeling.md) describes label setting
-	- [`Labeling-DFS.md`](CSP/Labeling-DFS.md) describes specificly the depth first variants of label setting and our contributions to it
+	- [`Labeling-DFS.md`](CSP/Labeling-DFS.md) describes specifically the depth first variants of label setting and our contributions to it
 
 ## References
 
