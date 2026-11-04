@@ -18,10 +18,10 @@ Original contributions contained in this repository include:
 
 |Category|Contributions|Status|
 |--------------|---------------------|----------|
-|DFS label-setting|Backwards dominance pruning tightening traditional dominance|In progress| 
+|[DFS label-setting](docs/CSP/Labeling-DFS.md)|Backwards dominance pruning tightening traditional dominance|In progress| 
 ||Completion equivalence pruning to fathom labels that share the same completion value|In progress|
 
-Formal problem definitions and detailed algorithm descriptions live in [docs/](docs/). The implementation of each novel contribution lives in [src/](src/).
+Formal problem definitions and detailed algorithm descriptions live in `docs/`. The implementation of each novel contribution lives in `src/`.
 
 ## Status
 
@@ -44,12 +44,12 @@ Actively under development, and best understood as a research prototype rather t
 Use the solution in benchmarks/ as the entry point:
 
 ```bash
-dotnet build benchmarks/Benchmarks.sln
+dotnet build benchmarks/Benchmarks.slnx
 ```
 
 ### Run a benchmark
 
-Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to the file given as the first command-line argument.
+Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to a file.
 
 ```bash
 dotnet run --project benchmarks/ConstrainedShortestPath -- results.csv
