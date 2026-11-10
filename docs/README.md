@@ -25,7 +25,7 @@ Current focus is on one constraint (DCLC) on layered acyclic multi-digraphs (DAG
 
 Where applicable, the code exploits the layered structure for better performance, smaller memory or simplicity. Unless specified, it is however not required for correctness of the algorithms. All algorithmic ideas extend to general DAGs when layer-by-layer traversal is replaced by topological ordering.
 
-*Example with 6 layers: layer 1 (source), layer 2 (1,2), layer 3 (3,4), layer 5 (5) and layer 6 (terminal) .*
+*Example with 5 layers: layer 0 (source s), layer 1 (1,2), layer 2 (3,4), layer 3 (5) and layer 4 (terminal t) .*
 
 ```mermaid
 flowchart LR

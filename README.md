@@ -44,15 +44,15 @@ Actively under development, and best understood as a research prototype rather t
 Use the solution in benchmarks/ as the entry point:
 
 ```bash
-dotnet build benchmarks/Benchmarks.slnx
+dotnet build benchmarks/Benchmarks.slnx --configuration Benchmark
 ```
 
 ### Run a benchmark
 
-Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to a file.
+Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to a file. Parameters are passed in through a json settings file.
 
 ```bash
-dotnet run --project benchmarks/ConstrainedShortestPath -- results.csv
+dotnet run --project benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG -- runsettings.json
 ```
 
 ### Build configurations

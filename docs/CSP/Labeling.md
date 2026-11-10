@@ -6,29 +6,54 @@ For the CSP with a single constraint, a label $l$ is a tuple $(w(p_{s \rightarro
 
 Label setting starts with label $(0,0,s)$ at the source $s$ and repeatedly expands the label $l=(w(p_{s \rightarrow v}), d(p_{s \rightarrow v}),v)$ along outgoing edges of $v$. Expansion of label $l$ along edge  $e_{vu}$ from node $v$ to its successor node $u$, generates a new label $l'$ by adding the edge's weight $w(e_{vu})$ and delay $d(e_{vu})$: $l'=(w(p_{s \rightarrow v}) + w(e_{vu}), d(p_{s \rightarrow v}) + d(e_{vu}), u)$.
 
-The order in which labels are expanded, varies across implementations. In this project we consider the following ordering variants:
+## Ordering
+
+The order in which labels are expanded, varies across implementations [Desrochers and Soumis, 1988]. In this project we consider the following ordering variants:
 
 - [Depth first ordering](Labeling-DFS.md)
 
-If we would naively expand every label, the number of partial paths can grow exponentially. To make label setting efficient, the algorithm relies on pruning to discard labels that cannot participate in an optimal feasible solution. See [Dumitrescu and Boland, 2003] for an overview of standard pruning rules.
+## Pruning
+
+If we would naively expand every label, the number of partial paths can grow exponentially. To make label setting efficient, the algorithm relies on pruning to discard labels that cannot participate in an optimal feasible solution. See [Dumitrescu and Boland, 2003], [Carlyle et al., 2008] or [Lozano  and Medaglia, 2013] for standard pruning rules.
 
 The standard often used pruning rules include:
 
-| Pruning | Description | Rule |
-| ------------ | ------------------ | ------- |
-| Feasibility | A label $l$ is infeasible if its current delay $d(p_{s \rightarrow v})$ plus the minimum possible remaining delay to the terminal $\lfloor d(p_{v \rightarrow t})\rfloor$ already exceeds the maximum allowed delay $D$. | $d(p_{s \rightarrow v}) + \lfloor d(p_{v \rightarrow t})\rfloor \gt D$ |
-| Incumbent | A label $l$ cannot lead to a better solution whenever the current weight $w(p_{s \rightarrow v})$ plus the minimum possible remaining weight to the terminal $\lfloor w(p_{v \rightarrow t})\rfloor$ does not improve on the best known solution $\lceil w^*(p_{s \rightarrow t})\rceil$  | $w(p_{s \rightarrow v})+ \lfloor w(p_{v \rightarrow t})\rfloor \ge \lceil w^*(p_{s \rightarrow t})\rceil$ |
-| Lower bound | A lower bound is obtained by combining weight and delay using a Lagrange multiplier: $c_{\lambda} = w + \lambda * d$. A label $l$ cannot lead to a better solution whenever it Lagrangianized cost $c_{\lambda}(p_{s \rightarrow v})$ shifted by the constant $\lambda * D$ plus the minimum possible Lagrangianized cost to terminal $\lfloor c_{\lambda}(p_{t \rightarrow t})\rfloor$ exceeds the incumbent $\lceil w^*(p_{s \rightarrow t})\rceil$ | $c_{\lambda}(p_{s \rightarrow v}) - \lambda * D + \lfloor c_{\lambda}(p_{t \rightarrow t})\rfloor \ge \lceil w^*(p_{s \rightarrow t})\rceil$ |
-| Dominance | Label $l$ is dominated by label $l′$ at the same node if $l′$ is strictly better or equal on both weight and delay, so any feasible extension from $l$ is also achievable from $l′$ with lower or equal total weight.| $w(p_{s \rightarrow v}) \le w(p'_{s \rightarrow v})\ \&\ d(p_{s \rightarrow v}) \le d(p'_{s \rightarrow v})$ |
-
-We propose two novel pruning rules specifically in the context of depth first ordering.
-
 | Pruning | Description |
 | ------------ | ------------------ |
-| Completion equivalence | Prunes labels that have equivalent weight or delay completion to terminal ||
-| Backwards dominance | Tighter dominance pruning when all expansions of a label along all edges will be dominated somewhere in the subgraph ||
+| Feasibility | A label $l$ is infeasible if its current delay $d(p_{s \rightarrow v})$ plus the minimum possible remaining delay to the terminal $\lfloor d(p_{v \rightarrow t})\rfloor$ already exceeds the maximum allowed delay $D$. |
+|| $d(p_{s \rightarrow v}) + \lfloor d(p_{v \rightarrow t})\rfloor \gt D$ |
+| Weight bound | A label $l$ cannot lead to a better solution whenever the current weight $w(p_{s \rightarrow v})$ plus the minimum possible remaining weight to the terminal $\lfloor w(p_{v \rightarrow t})\rfloor$ does not improve on the best known solution $\lceil w^*(p_{s \rightarrow t})\rceil$  |
+|| $w(p_{s \rightarrow v})+ \lfloor w(p_{v \rightarrow t})\rfloor \ge \lceil w^*(p_{s \rightarrow t})\rceil$ |
+| Lagrangian bound | A lower bound is obtained by combining weight and delay using a Lagrange multiplier $\lambda$: $c_{\lambda} = w + \lambda * d$. A label $l$ cannot lead to a better solution whenever its Lagrangianized cost $c_{\lambda}(p_{s \rightarrow v})$ shifted by the constant $\lambda * D$ plus the minimum possible Lagrangianized cost to terminal $\lfloor c_{\lambda}(p_{v \rightarrow t})\rfloor$ exceeds the incumbent $\lceil w^*(p_{s \rightarrow t})\rceil$ |
+|| $c_{\lambda}(p_{s \rightarrow v}) - \lambda * D + \lfloor c_{\lambda}(p_{v \rightarrow t})\rfloor \ge \lceil w^*(p_{s \rightarrow t})\rceil$ |
+| Dominance | Label $l$ is dominated by label $l′$ at the same node if $l′$ is strictly better or equal on both weight and delay, so any feasible extension from $l$ is also achievable from $l′$ with lower or equal total weight.|
+|| $l' \preceq l \Leftrightarrow w(p'_{s \rightarrow v}) \le w(p_{s \rightarrow v})\ and\ d(p'_{s \rightarrow v}) \le d(p_{s \rightarrow v})$ |
+
+We propose two novel pruning rules specifically in the context of depth first ordering (DFS).
+
+| Pruning (DFS) | Description |
+| --------------------- | ------------------ |
+| Completion equivalence | Let $[L,U)$ be an interval such that all labels with a delay in this interval $L \leq d(p_{s \rightarrow v}) \lt U$ share the same feasible shortest weight completion to the terminal node $t$. Once such interval is identified, the solution of continuing any label $l$ falling in the interval is already known and does not need to be computed again. |
+||$d(p_{s \rightarrow v}) \in [L,U)$|
+| Backwards dominance | When a label $l$ at node $v$ is expanded along edge $e$ and dominated at node $u$ by (weight, delay) pair $(w',d')$, then any label dominated by that pair's residual (weight, delay) after subtracting the edge $e$ is guaranteed to be dominated at node u, enabling stronger pruning. |
+|| $(w',d',u) \preceq l_{u} \Rightarrow (w' - w(e_{vu}), d' - d(e_{vu})) \preceq l_{v}$ |
 
 [Read more](Labeling-DFS.md) about these new pruning techniques.
+
+Note that pruning on bounds and feasibility require a backward shortest-path calculations to get the least delay and shortest weight paths from each node to the terminal. This initialization phase preceeds the actual label setting recursion:
+
+```plaintext
+initialization:
+1  compute least delay from each node to the terminal
+2  if (least delay from s to t) > D:
+3    problem is infeasible:
+4      stop
+5
+6  compute shortest weight from each node to the terminal
+7  if (delay of shortest weight path from s to t) <= D:
+8    unconstrained shortest weight path is optimal:
+9      stop
+```
 
 ## References
 
@@ -36,6 +61,12 @@ Ahmadi, S., Raith, A., Tack, G. & Jalili, M., 2025, Proceedings of the AAAI Conf
 
 Aneja, Y., Aggarwal, V., and Nair, K., (1983), “Shortest Chain Subject to Side Conditions,” Networks, 13, pp. 295–302.
 
+Carlyle, W.M., Royset, J.O. and Kevin Wood, R. (2008), Lagrangian relaxation and enumeration for solving constrained shortest-path problems†. Networks, 52: 256-270. https://doi.org/10.1002/net.20247
+
+Desrochers, M., & Soumis, F. (1988). A Generalized Permanent Labelling Algorithm For The Shortest Path Problem With Time Windows. INFOR: Information Systems and Operational Research, 26(3), 191–212. https://doi.org/10.1080/03155986.1988.11732063
+
 Dumitrescu, I. and Boland, N. (2003), Improved preprocessing, labeling and scaling algorithms for the Weight-Constrained Shortest Path Problem. Networks, 42: 135-153. https://doi.org/10.1002/net.10090
 
 Joksch, H., (1966), “The Shortest Route Problem with Constraints,” Journal of Mathematical Analysis and Application, 14, pp. 191–197.
+
+Lozano L., Medaglia A. L. (2013). On an exact method for the constrained shortest path problem Computers & Operations Research, Volume 40, Issue 1, Pages 378-384, https://doi.org/10.1016/j.cor.2012.07.008.
