@@ -1,0 +1,14 @@
+﻿{
+  "seed": null,
+  "solvers": [
+    "dfs_dual",
+    "dfs_dom",
+    "dfs_back_dom",
+    "dfs_eq",
+    "dfs_eq_weight"
+  ],
+  "outputPath": "./",
+  "cancellationSeconds": 600,
+  "minMillisecondsToElapse": 1000,
+  "minTimesToRun": 3
+}

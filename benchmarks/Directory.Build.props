@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>$(DefineConstants);TEST;PRINT_PROGRESS;INSTRUMENTATION</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>$(DefineConstants);PRINT_PROGRESS;INSTRUMENTATION</DefineConstants>
+  </PropertyGroup>
+</Project>
