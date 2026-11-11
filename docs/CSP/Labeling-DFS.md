@@ -4,7 +4,7 @@
 
 This document zooms in on the algorithms implemented in this code base that expand labels in a depth first ordering. Let Q be a stack of candidate labels. Initialize Q with a label $(0,0,s)$ at the source. Then each time the newest element in Q is selected and expanded along all outgoing edges. New labels are added to the top of the stack Q.
 
-```plaintext
+```text
 1  Stack Q = {(0,0,s)}
 2  while Q not empty:
 3    Label l(w,d,v) = pop top of Q
@@ -29,25 +29,25 @@ The Pulse algorithm [Lozano and Medaglia, 2013] is based on a recursive depth-fi
 
 post-expansion (insert at line 4):
 
-```plaintext
+```text
 4.1 if label l not dominated:
-4.2   add label l to none-dominated set
+4.2   add label l to non-dominated set
 ```
 
 pre-expansion (insert at line 8):
 
-```plaintext
+```text
 8.1 if label l' is feasible:
 8.2   if label l' weight bound: 
 ```
 
-Note: the original Pulse algorithm as described in [Lozano and Medaglia, 2013] limits the size of the none-dominated label set stored at each node and describes rules which labels to remove from the storage when that limit would otherwise be exceeded. This is not part of our implementation, we store all none-dominated labels at each node.
+Note: the original Pulse algorithm as described in [Lozano and Medaglia, 2013] limits the size of the non-dominated label set stored at each node and describes rules for which labels to remove from the storage when that limit would otherwise be exceeded. This is not part of our implementation, we store all non-dominated labels at each node.
 
 ### Lagrangian Relaxation and Enumeration
 
-Lagrangian Relaxation and Enumeration (LRE) [Carlyle et al., 2008] is based on near shortest path enumeration [Carlyle and Wood, 2005], [Byers and Waterman, 1984]. It expands partial paths in a depth-first search order and prunes on feasiblity, weight bound and Lagrangian bound.
+Lagrangian Relaxation and Enumeration (LRE) [Carlyle et al., 2008] is based on near shortest path enumeration [Carlyle and Wood, 2005], [Byers and Waterman, 1984]. It expands partial paths in a depth-first search order and prunes on feasibility, weight bound and Lagrangian bound.
 
-```plaintext
+```text
 4.1 if label l within Lagrangian bound:
 4.2   if label l within weight bound:
 4.3     if label l feasible:
@@ -57,18 +57,18 @@ Lagrangian Relaxation and Enumeration (LRE) [Carlyle et al., 2008] is based on n
 
 Dynamic programming is a long established technique to solve the constrained shortest path problem [Joksch, 1966]. Label setting is sometimes still called dynamic programming.
 
-The connection between dynamic programming and decison diagram (DD) compilation is also well known. See [Bergman et al. 2016] for a comprehensive overview. A decision diagram for a knapsack constraint can be build by running dynamic programming on the state-space as if you would solve the knapsack problem. The acyclic state-transition graph of the dynamic programming table is a binary decision diagram: it encodes all feasible solutions as paths on the graph. However, it is not a minimal decision diagram. An additional bottom-up minimization of the graph is required to detect and merge isomorphic subgraphs. [Behle, 2007] proposed an output sensitive decision diagram compilation which constructs a minimized decision diagram in one depth first traversal.
+The connection between dynamic programming and decison diagram (DD) compilation is also well known. See [Bergman et al. 2016] for a comprehensive overview. A decision diagram for a knapsack constraint can be build by running dynamic programming on the state-space as if you would solve the knapsack problem. The acyclic state-transition graph of the dynamic programming table is a binary decision diagram: it encodes all feasible solutions as paths on the graph. However, it is not a minimal decision diagram. An additional bottom-up minimization of the graph is required to detect and merge isomorphic subgraphs. [Behle, 2007] proposed an output-sensitive decision diagram compilation which constructs a minimized decision diagram in one depth first traversal.
 
-Define the label transition graph as the graph emerging from applying label setting to the constrained shortest path problem. Each label that is not pruned is a node and the label expansions define the edges of the graph. This label transition graph encodes the subspace of efficient paths on the original graph. Similar to the observation for decision diagrams, it can be observed that the label transition graph is not mimimal. Isomorphic subgraphs exist, in other words: more than one label has explored the same state-space. This hints at an opportunity to reduce the amount of label expansions.
+Define the label transition graph as the graph emerging from applying label setting to the constrained shortest path problem. Each label that is not pruned is a node and the label expansions define the edges of the graph. This label transition graph encodes the subspace of efficient paths on the original graph. As with decision diagrams, the label transition graph is not minimal. Isomorphic subgraphs exist, in other words: more than one label has explored the same state-space. This hints at an opportunity to reduce the amount of label expansions.
 
-The completion equivalence pruning we propose is an extension of the output sensitive compilation technique of [Behle, 2007] to the weight constrained shortest path problem.
+The completion equivalence pruning we propose is an extension of the output-sensitive compilation technique of [Behle, 2007] to the weight constrained shortest path problem.
 
-A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an intervals $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l'$ whose delay $d(p'_{s \rightarrow v})$ falls inside the interval: $L \leq d(p'_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical.
+A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an interval $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l'$ whose delay $d(p'_{s \rightarrow v})$ falls inside the interval: $L \leq d(p'_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical.
 
 This gives the following algorithm:
 
 initialization:
-```plaintext
+```text
 // initialize every node with an interval that captures infeasible 1 1 partial paths
 2 for every node v:
 3   insert interval [D - least_delay_to_terminal[n] + 1, +inf) with completion weight +inf
@@ -79,7 +79,7 @@ Note: we use `+ 1` for the interval bounds, which is correct for integer delays.
 
 post-expansion (insert at line 4):
 
-```plaintext
+```text
 4.1 if delay of label l falls into an existing interval at node:
 4.2   return
 ```
@@ -88,7 +88,7 @@ After having expanded to all successors along all edges, a new interval is creat
 
 post-recursion (insert after line 9):
 
-```plaintext
+```text
 add interval [L,U) with completion weight W to the set of intervals, where:
 
 W = min over all edges(successor completion weight + edge.weight)
@@ -104,7 +104,7 @@ In the context of weight minimization, we can further strengthen the equivalence
 
 replace the post-recursion interval derivation with:
 
-```plaintext
+```text
 add interval [L,U) with completion weight W to the set of intervals, where:
 
 W = min over all edges(successor completion weight + edge.weight)
@@ -114,18 +114,18 @@ L = max over all edges(successor L - edge.delay | (successor - 1).completion wei
 
 ## Backward dominance pruning
 
-The traditional dominance pruning maintains a set of none-dominated labels at each node. New labels that arrive at this node are compared to the existing set for dominance. If dominated by at least one label in the set, the new label is not expanded further. If not dominated by any label in the set, the new label is added to the set and expanded further along outgoing edges.
+The traditional dominance pruning maintains a set of non-dominated labels at each node. New labels that arrive at this node are compared to the existing set for dominance. If dominated by at least one label in the set, the new label is not expanded further. If not dominated by any label in the set, the new label is added to the set and expanded further along outgoing edges.
 
 We propose a stronger dominance by the following observation: if label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ at node $v$ is expanded to successor node $u$ along edge $e$ and is dominated at node $u$ by dominator $(w',d')$, then any label at node $v$ that is dominated by $(w' - w(e_{vu}), d' - d(e_{vu}))$ will be dominated by $(w',d')$ at node $u$. Since domination at node $u$ means: $w(p_{s \rightarrow v}) + w(e_{vu}) \ge w'$ and $d(p_{s \rightarrow v}) + d(e_{vu}) \ge d'$, we can say that $w' - w(e_{vu}) \le w(p_{s \rightarrow v})$ and $d' - d(e_{vu}) \le d(p_{s \rightarrow v})$. So the pair $(w' - w(e_{vu}), d' - d(e_{vu}))$ gives a stronger bound than the original label $(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$.
 
-In case of multiple outgoing edges, we need to make sure that future labels will be dominated along all edges. In a DFS ordering, all successors are visited before backtracking. This makes it possible to gather all successor dominators along all edges before constructing a dominator to be added to this node's set for future dominance pruning. To ensure future labels dominated by dominator $(w,d)$ are guaranteed to be dominated along all expansions somewhere in the subgraph rooted at node $v$, the dominator is constructed as the piece-wise maximum:
+In case of multiple outgoing edges, we need to make sure that future labels will be dominated along all edges. In a DFS ordering, all successors are visited before backtracking. This makes it possible to gather all successor dominators along all edges before constructing a dominator to be added to this node's set for future dominance pruning. To ensure future labels dominated by dominator $(w,d)$ are guaranteed to be dominated along all expansions somewhere in the subgraph rooted at node $v$, the dominator is constructed as the piecewise maximum:
 
-```plaintext
+```text
 dominator.weight = max over all edges(successor dominator.weight - edge.weight)
 dominator.delay = max over all edges(successor dominator.delay - edge.delay) 
 ```
 
-An example: given two edge with (weight,delay) $(1,2)$ and $(2,1)$ from node $v$ to node $u$. Label $(3,5)$ at node $v$ is expanded to node $u$ as $(4,7)$ and $(5,6)$. Say node $u$ already has a pair $(1,2)$ that dominates both $(4,7)$ and $(5,6)$. Then we know that any label dominated by $(0,1)=(max(1-1,1-2),max(2-2,2-1))$ at node $v$ will be dominated at node $u$. So we can store $(0,1)$ at node $v$ instead of the label itself $(3,5)$ to prune future labels arriving at node $v$.
+An example: given two edges with (weight,delay) $(1,2)$ and $(2,1)$ from node $v$ to node $u$. Label $(3,5)$ at node $v$ is expanded to node $u$ as $(4,7)$ and $(5,6)$. Say node $u$ already has a pair $(1,2)$ that dominates both $(4,7)$ and $(5,6)$. Then we know that any label dominated by $(0,1)=(\max(1-1, 1-2), \max(2-2, 2-1))$ at node $v$ will be dominated at node $u$. So we can store $(0,1)$ at node $v$ instead of the label itself $(3,5)$ to prune future labels arriving at node $v$.
 
 ```mermaid
 flowchart LR
@@ -140,16 +140,16 @@ flowchart LR
 
 The terminal case ends the recursion: at the terminal, the label itself is stored whenever it is not dominated by the labels already in the storage.
 
-Two special cases are added to accomodate feasibility and weight bound pruning:
+Two special cases are added to accommodate feasibility and weight bound pruning:
 
 - *feasibility*: every node is initialized with (weight,delay) pair $(-\infty, D - \lfloor d(p_{v \rightarrow t})\rfloor + 1)$ in its dominator set.
-- *weight bound*: additionaly, a label can be dominated by $(\lceil w^*(p_{s \rightarrow t})\rceil - \lfloor w(p_{v \rightarrow t})\rfloor,-\infty)$ which is used as dominator for labels exceeding the weight bound.
+- *weight bound*: additionally, a label can be dominated by $(\lceil w^*(p_{s \rightarrow t})\rceil - \lfloor w(p_{v \rightarrow t})\rfloor,-\infty)$ which is used as dominator for labels exceeding the weight bound.
 
-Note: we use `+ 1` for the feasibity dominator, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
+Note: we use `+ 1` for the feasibility dominator, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
 ## Todo
 
-- Combine completion equivalence pruning with pruning on the weight dimension (enabling pruning by backwards dominance, weight bound and\or Lagrangian bound)
+- Combine completion equivalence pruning with pruning on the weight dimension (enabling pruning by backward dominance, weight bound and\or Lagrangian bound)
 - explain and implement bidirectional variant (biPulse, [Cabrera et al., 2020]) for comparison
 - Extend to general graphs and elementary path version with cycle detection
 - Connection between label transition graph and a 'decision diagram' that encodes all feasible paths of the constrained shortest path problem. Opportunity for further 'cross node' reduction and canonical weights [Hooker, 2013].

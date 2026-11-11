@@ -1,6 +1,6 @@
 # Documentation
 
-This folder contains the formal problem definitions and algorithm documentation for the constrained shortest path work in this repository. As well as some implementation details as far as required to interpret the results and the scope correctly. It is not a documentation of the code, its API or how to use or integrate the code. 
+This folder contains the formal problem definitions and algorithm documentation for the constrained shortest path work in this repository, as well as some implementation details as far as required to interpret the results and the scope correctly. It does not document the code, its API or how to use or integrate the code.
 
 ## Intent
 
@@ -10,7 +10,7 @@ This documentation is intended for readers familiar with shortest path problems.
 
 The research focuses on the constrained shortest path problem (CSP), where the objective is to find a minimum weight path from a source node $s$ to a terminal node $t$ while satisfying one or more side constraints.
 
-Beside *weights* - the objective value-, each edge is associated with one or more scalars - the constraint values. The optimal path may not exceed a threshold on the sum of each of these scalars. For one constraint, the constraint dimension is called the *delay* of the path, as in the delay constrained least cost (DCLC) problem. This problem is also known as the restricted shortest path problem or the  weight constrained shortest path problem (WCSPP). Note the ambiguity with the latter: in our terminology, weight is the objective function to minimize and delay the constraint. 
+Beside *weights* - the objective value-, each edge is associated with one or more scalars - the constraint values. The optimal path may not exceed a threshold on the sum of each of these scalars. For one constraint, the constraint dimension is called the *delay* of the path, as in the delay constrained least cost (DCLC) problem. This problem is also known as the restricted shortest path problem or the  weight constrained shortest path problem (WCSPP). Note the ambiguity with the latter: in our terminology, weight is the objective function to minimize and delay the constraint.
 
 $$
 \begin{align}
@@ -75,16 +75,16 @@ Solution strategies used in this research can be classified under the label sett
 
 A label is repeatedly expanded along edges. The ordering in which expansion happens is one of the main differentiators for label setting algorithms. Orderings used in this research are:
 
- - [depth-first ordering](CSP/Labeling-DFS.md)
+- [depth-first ordering](CSP/Labeling-DFS.md)
 
 The efficiency of label setting further depends on pruning rules. Pruning rules fathom labels early if it can be proven the partial path can not be completed to an optimal path. [Read more](CSP/Labeling.md) about this repositories research into label setting solution strategies.
 
 ## Contributions
 
 The main methodological contributions currently explored are as follows.
-We are unaware of prior publications describing these specific  contributrions.
+We are unaware of prior publications describing these specific contributions.
 
-###  DFS label-setting
+### DFS label-setting
 
 We propose two new pruning rules that are used in label setting with a depth first exploration:
 
@@ -94,12 +94,11 @@ We propose two new pruning rules that are used in label setting with a depth fir
 ## Documentation structure
 
 - `CSP/` — documentation for the constrained shortest path problem
-	- [`Labeling.md`](CSP/Labeling.md) describes label setting
-	- [`Labeling-DFS.md`](CSP/Labeling-DFS.md) describes specifically the depth first variants of label setting and our contributions to it
+  - [`Labeling.md`](CSP/Labeling.md) describes label setting
+  - [`Labeling-DFS.md`](CSP/Labeling-DFS.md) describes specifically the depth first variants of label setting and our contributions to it
 
 ## References
 
 Bergman D., Bodur M., Cardonha C., Cire A.A. (2021). Network Models for Multiobjective Discrete Optimization. INFORMS Journal on Computing Vol. 34, No. 2 https://doi.org/10.1287/ijoc.2021.1066
 
 Hooker, J.N. (2013). Decision Diagrams and Dynamic Programming. In: Gomes, C., Sellmann, M. (eds) Integration of AI and OR Techniques in Constraint Programming for Combinatorial Optimization Problems. CPAIOR 2013. Lecture Notes in Computer Science, vol 7874. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-38171-3_7
- 

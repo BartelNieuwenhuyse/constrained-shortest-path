@@ -35,14 +35,14 @@ We propose two novel pruning rules specifically in the context of depth first or
 | --------------------- | ------------------ |
 | Completion equivalence | Let $[L,U)$ be an interval such that all labels with a delay in this interval $L \leq d(p_{s \rightarrow v}) \lt U$ share the same feasible shortest weight completion to the terminal node $t$. Once such interval is identified, the solution of continuing any label $l$ falling in the interval is already known and does not need to be computed again. |
 ||$d(p_{s \rightarrow v}) \in [L,U)$|
-| Backwards dominance | When a label $l$ at node $v$ is expanded along edge $e$ and dominated at node $u$ by (weight, delay) pair $(w',d')$, then any label dominated by that pair's residual (weight, delay) after subtracting the edge $e$ is guaranteed to be dominated at node u, enabling stronger pruning. |
+| Backward dominance | When a label $l$ at node $v$ is expanded along edge $e$ and dominated at node $u$ by (weight, delay) pair $(w',d')$, then any label dominated by that pair's residual (weight, delay) after subtracting the edge $e$ is guaranteed to be dominated at node u, enabling stronger pruning. |
 || $(w',d',u) \preceq l_{u} \Rightarrow (w' - w(e_{vu}), d' - d(e_{vu})) \preceq l_{v}$ |
 
 [Read more](Labeling-DFS.md) about these new pruning techniques.
 
 Note that pruning on bounds and feasibility require a backward shortest-path calculations to get the least delay and shortest weight paths from each node to the terminal. This initialization phase preceeds the actual label setting recursion:
 
-```plaintext
+```text
 initialization:
 1  compute least delay from each node to the terminal
 2  if (least delay from s to t) > D:
