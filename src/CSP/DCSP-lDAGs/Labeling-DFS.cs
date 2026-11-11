@@ -135,7 +135,7 @@ public sealed class LabelingDFSSolver : BaseSolver
         // data structures
         int[] delay_to_terminal = new int[graph.number_of_nodes];  // shortest distance from each node to the terminal for cost (delay)
         int[] weight_to_terminal = new int[graph.number_of_nodes]; // shortest distance from each node to the terminal for cost (weight)
-        // todo: predecessor like tracking so we can reconstruct the actual path
+        Edge[] path = new Edge[graph.number_of_nodes];             // track edges to reconstruct the actual path during the depth first traversal
 
         // calculate the shortest node-to-terminal distances
         // in distance metric (delay)
@@ -159,17 +159,26 @@ public sealed class LabelingDFSSolver : BaseSolver
 
         // update the incumbent with the weight of the least delay path or the precalculated incumbent if it is smaller
         _upper_bound_weight = weight_of_delay_path < incumbent ? weight_of_delay_path : incumbent;
+        _upper_bound_path = new Edge[graph.number_of_layers]; // store the best path found so far
 
         // calculate the shortest node-to-terminal distances
         // in distance metric (weight)
         // to be used for weight bound pruning (label's weight + least_weight_to_terminal > _upper_bound_weight)
-        (int weight_path, int delay_of_weight_path) = shortest_weight_from_terminal(weight_to_terminal);
+        (int weight_path, int delay_of_weight_path) = shortest_weight_from_terminal(weight_to_terminal, path);
 
         if (delay_of_weight_path <= max_delay)
         {
             // least weight path is feasible, so also optimal
-            set_primal_solution(weight_path, delay_of_weight_path);
-            return new Solution(_feasibility, null, new PrimalSolution(weight_path, delay_of_weight_path)
+            path_from_source(path, _upper_bound_path);
+            set_primal_solution(weight_path, delay_of_weight_path, _upper_bound_path);
+#if TEST
+            if (check)
+            {
+                if (get_path_weight(_upper_bound_path) != _upper_bound_weight) { PrintFailedCheck($"Path weight {get_path_weight(_upper_bound_path)} differs from {_upper_bound_weight}"); }
+                if (get_path_delay(_upper_bound_path) != _upper_bound_delay) { PrintFailedCheck($"Path delay {get_path_delay(_upper_bound_path)} differs from {_upper_bound_delay}"); }
+            }
+#endif
+            return new Solution(_feasibility, null, new PrimalSolution(weight_path, delay_of_weight_path, _upper_bound_path)
 #if INSTRUMENTATION
                                 , counters
 #endif
@@ -206,9 +215,9 @@ public sealed class LabelingDFSSolver : BaseSolver
 #if INSTRUMENTATION
         ++counters.number_of_labels; // label initialized at source
 #endif
-        dfs_back_dominance(graph.source, new Distances() { weight = 0, delay = 0 }, node_dominators, delay_to_terminal, weight_to_terminal, workspaces, token);
+        dfs_back_dominance(graph.source, new Distances() { weight = 0, delay = 0 }, node_dominators, delay_to_terminal, weight_to_terminal, path, workspaces, token);
 
-        return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+        return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
                 , counters
 #endif
@@ -238,6 +247,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
         // data structures
         int[] delay_to_terminal = new int[graph.number_of_nodes];  // shortest distance from each node to the terminal for cost (delay)
+        // todo: path reconstruction
 
         // set of intervals per node
         SortedIntervalArray[] intervals = new SortedIntervalArray[graph.number_of_nodes];
@@ -310,7 +320,7 @@ public sealed class LabelingDFSSolver : BaseSolver
         }
 #endif
 
-        return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+        return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, null)
 #if INSTRUMENTATION
                 , counters
 #endif
@@ -339,6 +349,8 @@ public sealed class LabelingDFSSolver : BaseSolver
         // data structures
         int[] delay_to_terminal = new int[graph.number_of_nodes];  // shortest distance from each node to the terminal for cost (delay)
         int[] weight_to_terminal = new int[graph.number_of_nodes]; // shortest distance from each node to the terminal for cost (weight)
+        // todo : path reconstruction
+
         IntLabelHeap[] heaps = new IntLabelHeap[graph.number_of_layers];      // workspace for each node to store intermediate results from the recursive calls to children, so we don't have to allocate memory for each recursive call
         for (int l = 0; l < graph.number_of_layers; ++l) heaps[l] = new IntLabelHeap(graph.max_edges_out_of_node, new MaxIntLabelComparer()
 #if INSTRUMENTATION
@@ -387,7 +399,7 @@ public sealed class LabelingDFSSolver : BaseSolver
         // calculate the shortest node-to-terminal distances
         // in distance metric (weight)
         // to be used as lower bound on the distance to terminal
-        shortest_weight_from_terminal(weight_to_terminal);
+        shortest_weight_from_terminal(weight_to_terminal, new Edge[graph.number_of_nodes]); // todo: is the path reconstruction needed here?
 
         // initialize every node with an interval that captures infeasible partial paths
         // where delay from source + least delay to terminal > max_delay
@@ -425,7 +437,7 @@ public sealed class LabelingDFSSolver : BaseSolver
         }
 #endif
 
-        return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+        return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, null)
 #if INSTRUMENTATION
                 , counters
 #endif
@@ -441,7 +453,15 @@ public sealed class LabelingDFSSolver : BaseSolver
     /// Keeps a set of the none-dominated (weight,delay) pairs derived after all children of a node are visited in dfs, before backtracking
     /// from successor domination to prune future labels on dominance
     /// </summary>
-    int dfs_back_dominance(Node node, Distances label, SortedLabelArray[] node_dominators, int[] least_delay_to_terminal, int[] shortest_weight_to_terminal, int[][] workspaces, CancellationToken token)
+    /// <param name="node">the node currently being visited</param>
+    /// <param name="label">the accumulated (weight,delay) from source to this node</param>
+    /// <param name="node_dominators">the array of none-dominated (weight,delay) pairs for each node</param>
+    /// <param name="least_delay_to_terminal">the least delay from each node to the terminal</param>
+    /// <param name="shortest_weight_to_terminal">the shortest weight from each node to the terminal</param>
+    /// <param name="path">the current path from source to this node</param>
+    /// <param name="workspaces">the workspaces for temporary storage during DFS</param>
+    /// <param name="token">the cancellation token to observe</param>
+    int dfs_back_dominance(Node node, Distances label, SortedLabelArray[] node_dominators, int[] least_delay_to_terminal, int[] shortest_weight_to_terminal, Edge[] path, int[][] workspaces, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 #if TEST
@@ -485,7 +505,15 @@ public sealed class LabelingDFSSolver : BaseSolver
             // update the best solution so far...
             if (label.weight < _upper_bound_weight)
             {
-                set_primal_solution(label.weight, label.delay);
+#if TEST
+                if (check)
+                {
+                    if (get_path_weight(path) != label.weight) { PrintFailedCheck($"DFS path weight {get_path_weight(path)} differs from {label.weight}"); }
+                    if (get_path_delay(path) != label.delay) { PrintFailedCheck($"DFS path delay {get_path_delay(path)} differs from {label.delay}"); }
+                }
+#endif
+                Array.Copy(path, _upper_bound_path, graph.number_of_layers);
+                set_primal_solution(label.weight, label.delay, _upper_bound_path);
             }
 #if PRINT_PROGRESS
             else
@@ -514,12 +542,14 @@ public sealed class LabelingDFSSolver : BaseSolver
                 else
                 {
                     // go into successor node, and store the index of the dominator returned
+                    path[node_bottom.index_of_layer] = edge; // track the edge to reconstruct the path when reaching the terminal
+
                     workspace[e] = dfs_back_dominance(node_bottom,
                         new Distances()
                         {
                             delay = label.delay + delay[node.index_in_graph][edge.index_in_node_in],
                             weight = label.weight + weight[node.index_in_graph][edge.index_in_node_in]
-                        }, node_dominators, least_delay_to_terminal, shortest_weight_to_terminal, workspaces, token);
+                        }, node_dominators, least_delay_to_terminal, shortest_weight_to_terminal, path, workspaces, token);
                 }
             }
 

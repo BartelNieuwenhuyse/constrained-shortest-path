@@ -27,7 +27,7 @@ public enum Feasibility
 /// </summary>
 public sealed record DualSolution(int weight, int delay, double lambda);
 
-public sealed record PrimalSolution(int weight, int delay);
+public sealed record PrimalSolution(int weight, int delay, Edge[] path);
 #if INSTRUMENTATION
 public sealed record InstrumentationCounters
 {

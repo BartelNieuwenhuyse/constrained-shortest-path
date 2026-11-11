@@ -1,6 +1,8 @@
 ﻿
 namespace DelayConstrainedShortestPath.References;
 
+using DataStructures;
+
 public sealed class DualCuttingPlaneSolver : BaseDualSolver
 {
     public DualCuttingPlaneSolver(Input input
@@ -40,10 +42,16 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
             // shortest weight path is feasible: we are done
             _feasibility = Feasibility.feasible;
             set_dual_solution(weight_path_weight, weight_path_delay, 0);
-
+#if TEST
+            if (check)
+            {
+                if (_upper_bound_weight != get_path_weight(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound weight {_upper_bound_weight} does not match path weight {get_path_weight(get_path_from_first_edge())}"); }
+                if (_upper_bound_delay != get_path_delay(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound delay {_upper_bound_delay} does not match path delay {get_path_delay(get_path_from_first_edge())}"); }
+            }
+#endif
             return new Solution(_feasibility,
                 new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
-                new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+                new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
                 , counters
 #endif
@@ -70,6 +78,8 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 );
         }
         _feasibility = Feasibility.feasible;
+        _upper_bound_path = get_path_from_first_edge();
+
         int delay_path_weight = path_weight_from_first_edge();
 #if PRINT_PROGRESS
         PrintIteration(null, null, null, null, delay_path_weight, delay_path_delay, Feasibility.feasible);
@@ -136,6 +146,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 // new path is feasible, update delay path
                 delay_path_delay = delay;
                 delay_path_weight = weight;
+
+                // and store the actual path
+                path_from_first_edge(_upper_bound_path);
 #if TEST
                 if (verbose) { Console.WriteLine($"upper bound: {delay_path_weight}"); }
 #endif
@@ -159,10 +172,16 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
             }
         }
         while (delay != max_delay);
-
+#if TEST
+        if (check)
+        {
+            if (_upper_bound_weight != get_path_weight(_upper_bound_path)) { PrintFailedCheck($"Upper bound weight {_upper_bound_weight} does not match path weight {get_path_weight(_upper_bound_path)}"); }
+            if (_upper_bound_delay != get_path_delay(_upper_bound_path)) { PrintFailedCheck($"Upper bound delay {_upper_bound_delay} does not match path delay {get_path_delay(_upper_bound_path)}"); }
+        }
+#endif
         return new Solution(_feasibility,
                             new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
-                            new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+                            new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
                             , counters
 #endif
@@ -193,10 +212,16 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
             // shortest weight path is feasible: we are done
             _feasibility = Feasibility.feasible;
             set_dual_solution(weight_path_weight, weight_path_delay, 0);
-
+#if TEST
+            if (check)
+            {
+                if (_upper_bound_weight != get_path_weight(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound weight {_upper_bound_weight} does not match path weight {get_path_weight(get_path_from_first_edge())}"); }
+                if (_upper_bound_delay != get_path_delay(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound delay {_upper_bound_delay} does not match path delay {get_path_delay(get_path_from_first_edge())}"); }
+            }
+#endif
             return new Solution(_feasibility,
                 new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
-                new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+                new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
                 , counters
 #endif
@@ -229,10 +254,16 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
         {
             // lower bound = upper bound: we are done
             set_dual_solution(delay_path_weight, delay_path_delay, 0);
-
+#if TEST
+            if (check)
+            {
+                if (_upper_bound_weight != get_path_weight(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound weight {_upper_bound_weight} does not match path weight {get_path_weight(get_path_from_first_edge())}"); }
+                if (_upper_bound_delay != get_path_delay(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound delay {_upper_bound_delay} does not match path delay {get_path_delay(get_path_from_first_edge())}"); }
+            }
+#endif
             return new Solution(_feasibility,
                 new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
-                new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+                new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
                 , counters
 #endif
@@ -271,6 +302,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
             if (IsEqual(path_aggregated_cost, weight_path_weight + lambda * weight_path_delay))
             {
                 // optimum reached
+                if (path_delay_from_first_edge() > max_delay) least_delay_on_equality_graph(equality_subgraph); // get (back to) the feasible solution on the equality graph
                 set_dual_solution(delay_path_weight, delay_path_delay, lambda);
                 break;
             }
@@ -348,10 +380,16 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
             }
         }
         while (delay != max_delay);
-
+#if TEST
+        if (check)
+        {
+            if (_upper_bound_weight != get_path_weight(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound weight {_upper_bound_weight} does not match path weight {get_path_weight(get_path_from_first_edge())}"); }
+            if (_upper_bound_delay != get_path_delay(get_path_from_first_edge())) { PrintFailedCheck($"Upper bound delay {_upper_bound_delay} does not match path delay {get_path_delay(get_path_from_first_edge())}"); }
+        }
+#endif
         return new Solution(_feasibility,
                             new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
-                            new PrimalSolution(_upper_bound_weight, _upper_bound_delay)
+                            new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
                             , counters
 #endif

@@ -27,7 +27,13 @@ public abstract class BaseSolver
     // primal solution
     protected int _upper_bound_weight = int.MaxValue;
     protected int _upper_bound_delay;
+    protected Edge[] _upper_bound_path = Array.Empty<Edge>();
 
+    protected void set_primal_solution(int path_weight, int path_delay, Edge[] path)
+    {
+        set_primal_solution(path_weight, path_delay);
+        this._upper_bound_path = path;
+    }
     protected void set_primal_solution(int path_weight, int path_delay)
     {
 #if PRINT_PROGRESS
@@ -36,6 +42,7 @@ public abstract class BaseSolver
         this._upper_bound_weight = path_weight;
         this._upper_bound_delay = path_delay;
     }
+
 #if TEST
     /// <summary>
     /// debuging by automatic checks and printing the problem
@@ -83,8 +90,9 @@ public abstract class BaseSolver
     /// </summary>
     /// <param name="lambda">the Lagrangian multiplier for the delay constraint</param>
     /// <param name="shortest_cost_per_node">stores the shortest distance (cost) to the terminal for each node</param>
+    /// <param name="predecessor_per_node">stores the predecessor edge for each node along the shortest cost path</param>
     /// <returns>shortest source to terminal cost, weight along the shortest cost path, delay along the shortest cost path</returns>
-    protected (double, int, int) shortest_cost_from_terminal(double lambda, double[] shortest_cost_per_node)
+    protected (double, int, int) shortest_cost_from_terminal(double lambda, double[] shortest_cost_per_node, Edge[] predecessor_per_node)
     {
         // keep distance arrays (least delay and shortest weight)
         int[] delay_top = new int[graph.max_width];       // least delay distance to nodes in layer l + 1 
@@ -123,6 +131,8 @@ public abstract class BaseSolver
                         // shorter path found
                         shortest_cost_per_node[node_top.index_in_graph] = shortest_cost_per_node[node_bottom.index_in_graph] + dist;
 
+                        // store the predecessor of the node on the shortest path and the delay and weight along the shortest cost path
+                        predecessor_per_node[node_top.index_in_graph] = edge;
                         weight_top[node_top.index_in_layer] = weight_bottom[node_bottom.index_in_layer] + weight[node_top.index_in_graph][edge.index_in_node_in];
                         delay_top[node_top.index_in_layer] = delay_bottom[node_bottom.index_in_layer] + delay[node_top.index_in_graph][edge.index_in_node_in];
                     }
@@ -149,8 +159,9 @@ public abstract class BaseSolver
     /// for distance metric weight
     /// </summary>
     /// <param name="shortest_weight_per_node">stores the shortest distance (weight) to the terminal for each node</param>
+    /// <param name="predecessor_per_node">stores the predecessor of each node on the shortest path</param>
     /// <returns>shortest source to terminal weight and the delay along the shortest weight path</returns>
-    protected (int, int) shortest_weight_from_terminal(int[] shortest_weight_per_node)
+    protected (int, int) shortest_weight_from_terminal(int[] shortest_weight_per_node, Edge[] predecessor_per_node)
     {
         // keep two distance arrays (least delay)
         int[] delay_top = new int[graph.max_width];      // least delay distance to nodes in layer l + 1 
@@ -184,6 +195,9 @@ public abstract class BaseSolver
                     {
                         // shorter path found
                         shortest_weight_per_node[node_top.index_in_graph] = shortest_weight_per_node[node_bottom.index_in_graph] + dist;
+
+                        // store the predecessor of the node on the shortest path and the delay along the shortest weight path
+                        predecessor_per_node[node_top.index_in_graph] = edge;
                         delay_top[node_top.index_in_layer] = delay_bottom[node_bottom.index_in_layer] + delay[node_top.index_in_graph][edge.index_in_node_in];
                     }
                 }
@@ -264,6 +278,29 @@ public abstract class BaseSolver
     }
 
     /// <summary>
+    /// Used to reconstruct the source to terminal path
+    /// From the predecessor structure created from the shortest_[*]_from_terminal functions
+    /// </summary>
+    /// <param name="predecessor_per_node">Array of predecessor edges for each node</param>
+    /// <returns>Array of edges representing the path from source to terminal</returns>
+    protected void path_from_source(Edge[] predecessor_per_node, Edge[] path)
+    {
+        Node node = graph.source;
+        for (int l = 1; l < graph.number_of_layers; ++l)
+        {
+            Edge edge = predecessor_per_node[node.index_in_graph];
+            path[l] = edge;
+            node = edge.node_out(graph);
+        }
+    }
+    protected Edge[] get_path_from_source(Edge[] predecessor_per_node)
+    {
+        Edge[] result = new Edge[graph.number_of_layers];
+        path_from_source(predecessor_per_node, result);
+        return result;
+    }
+
+    /// <summary>
     /// Resize the array to have at least K capacity, but not more than 2 * K capacity
     /// </summary>
     /// <param name="arr">Array to be resized</param>
@@ -292,7 +329,57 @@ public abstract class BaseSolver
         Array.Resize(ref arr, capacity);
 #endif
     }
-    #endregion
+
+#if TEST
+    /// <summary>
+    /// Calculate the weight of a path given its edges
+    /// </summary>
+    /// <param name="path">Array of edges representing the path where the array has size equal to the number of layers in the graph and edges are stored in order from source to terminal from index 1 to number of layers - 1</param>
+    /// <returns>The total cost of the path</returns>
+    protected double get_path_cost(double lambda, Edge[] path)
+    {
+        double path_cost = 0;
+        for (int l = 1; l < graph.number_of_layers; ++l)
+        {
+            Edge edge = path[l];
+            path_cost += weight[edge.index_in_graph_of_node_in][edge.index_in_node_in] + lambda * delay[edge.index_in_graph_of_node_in][edge.index_in_node_in];
+        }
+        return path_cost;
+    }
+
+    /// <summary>
+    /// Calculate the weight of a path given its edges
+    /// </summary>
+    /// <param name="path">Array of edges representing the path where the array has size equal to the number of layers in the graph and edges are stored in order from source to terminal from index 1 to number of layers - 1</param>
+    /// <returns>The total weight of the path</returns>
+    protected int get_path_weight(Edge[] path)
+    {
+        int path_weight = 0;
+        for (int l = 1; l < graph.number_of_layers; ++l)
+        {
+            Edge edge = path[l];
+            path_weight += weight[edge.index_in_graph_of_node_in][edge.index_in_node_in];
+        }
+        return path_weight;
+    }
+
+    /// <summary>
+    /// Calculate the delay of a path given its edges
+    /// </summary>
+    /// <param name="path">Array of edges representing the path where the array has size equal to the number of layers in the graph and edges are stored in order from source to terminal from index 1 to number of layers - 1</param>
+    /// <returns>The total delay of the path</returns>
+    protected int get_path_delay(Edge[] path)
+    {
+        int path_delay = 0;
+        for (int l = 1; l < graph.number_of_layers; ++l)
+        {
+            Edge edge = path[l];
+            path_delay += delay[edge.index_in_graph_of_node_in][edge.index_in_node_in];
+        }
+        return path_delay;
+    }
+#endif
+#endregion
 
     #region precision
     /// <summary>
@@ -324,7 +411,7 @@ public abstract class BaseSolver
     #region print
     public void PrintProblem()
     {
-        for (int l = 0; l < graph.layers.Length; ++l)
+        for (int l = 0; l < graph.number_of_layers; ++l)
         {
             Console.WriteLine($"Layer {l}");
             Layer layer = graph.layers[l];
@@ -404,7 +491,8 @@ public abstract class BaseSolver
     protected void PrintFailedCheck(string message)
     {
         PrintInput();
-        Console.WriteLine(message); Console.ReadLine();
+        Console.WriteLine(message);
+        Console.ReadLine();
     }
 
 #if PRINT_PROGRESS
@@ -483,7 +571,7 @@ public abstract class BaseDualSolver : BaseSolver
         double[] dist_bottom = new double[graph.max_width];  // shortest path distance to nodes in layer l + 1
         dist_top[0] = 0;                                     // initialize shortest path distance of source node to 0                        
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -540,7 +628,7 @@ public abstract class BaseDualSolver : BaseSolver
         int[] dist_bottom = new int[graph.max_width];  // shortest path distance to nodes in layer l + 1
         dist_top[0] = 0;                               // initialize shortest path distance of source node to 0
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -597,7 +685,7 @@ public abstract class BaseDualSolver : BaseSolver
         int[] delay_bottom = new int[graph.max_width];  // least delay distance to nodes in layer l
         delay_top[0] = 0;                               // initialize least delay distance of source node to 0            
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -663,7 +751,7 @@ public abstract class BaseDualSolver : BaseSolver
         Node source = graph.source;
         equality_graph[source.index_in_graph] = 0;     // source node does not have edges_in in equality graph
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -720,7 +808,6 @@ public abstract class BaseDualSolver : BaseSolver
         return dist_bottom[0];
     }
 
-
     /// <summary>
     /// calculate the equality graph,
     /// i.e. the set of edges whose slack (weight + (dual_node_out - dual_node_in)) is zero
@@ -739,7 +826,7 @@ public abstract class BaseDualSolver : BaseSolver
         Node source = graph.source;
         equality_graph[source.index_in_graph] = 0;     // source node does not have edges_in in equality graph
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -813,7 +900,7 @@ public abstract class BaseDualSolver : BaseSolver
         Node source = graph.source;
         equality_graph[source.index_in_graph] = 0;     // source node does not have edges_in in equality graph
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -883,7 +970,7 @@ public abstract class BaseDualSolver : BaseSolver
         int[] dist_bottom = new int[graph.max_width];  // shortest path distance to nodes in layer l
         dist_top[0] = 0;                                     // initialize shortest path distance of source node to 0                        
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -943,7 +1030,7 @@ public abstract class BaseDualSolver : BaseSolver
         int[] delay_bottom = new int[graph.max_width];  // least delay distance to nodes in layer l
         delay_top[0] = 0;                               // initialize least delay distance of source node to 0            
 
-        for (int l = 1, n, e; l < graph.layers.Length; ++l)
+        for (int l = 1, n, e; l < graph.number_of_layers; ++l)
         {
             Layer layer_bottom = graph.layers[l];
 
@@ -1004,7 +1091,7 @@ public abstract class BaseDualSolver : BaseSolver
         // get the terminal node
         Node node = graph.terminal;
 
-        for (int l = graph.layers.Length - 2; l >= 0; l--)
+        for (int l = graph.number_of_layers - 2; l >= 0; l--)
         {
             // backtrack the path by each time taking the first edge of the node
             Edge edge = node.edges_in[0];
@@ -1029,7 +1116,7 @@ public abstract class BaseDualSolver : BaseSolver
         // get the terminal node
         Node node = graph.terminal;
 
-        for (int l = graph.layers.Length - 2; l >= 0; l--)
+        for (int l = graph.number_of_layers - 2; l >= 0; l--)
         {
             // backtrack the path by each time taking the first edge of the node
             Edge edge = node.edges_in[0];
@@ -1037,6 +1124,32 @@ public abstract class BaseDualSolver : BaseSolver
             path_delay += delay[node.index_in_graph][edge.index_in_node_in];
         }
         return path_delay;
+    }
+
+    /// <summary>
+    /// returns the path of the last calculated path
+    /// presuming the path is encoded in the incoming edges 
+    /// (first incoming edge of each node is edge on path to that node) 
+    /// </summary>
+    /// <param name="path">Edges representing the path</param>
+    protected void path_from_first_edge(Edge[] path)
+    {
+        // get the terminal node
+        Node node = graph.terminal;
+
+        for (int l = graph.number_of_layers - 1; l > 0; l--)
+        {
+            // backtrack the path by each time taking the first edge of the node
+            Edge edge = node.edges_in[0];
+            node = edge.node_in(graph);
+            path[l] = edge;
+        }
+    }
+    protected Edge[] get_path_from_first_edge()
+    {
+        Edge[] path = new Edge[graph.number_of_layers];
+        path_from_first_edge(path);
+        return path;
     }
 
     #endregion
