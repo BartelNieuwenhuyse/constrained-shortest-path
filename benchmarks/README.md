@@ -14,8 +14,8 @@ For each benchmark run, the harness:
 - solves a dual relaxation to obtain a reference lambda / incumbent bound
 - runs each configured solver on the same generated instance
 - compares the returned feasibility and optimal weight across solvers
-- writes one semicolon-delimited CSV row per graph instance
-- stores run metadata in a per-run directory under the configured output path
+- writes two semicolon-delimited CSVs: one with the problem data and one with the solver results
+- stores run metadata and run parameters in a per-run directory under the configured output path as context of the build and environment on which the run took place
 
 The benchmark is designed for empirical evaluation and performance comparison rather than formal proof.
 
@@ -24,10 +24,16 @@ The benchmark is designed for empirical evaluation and performance comparison ra
 Use the project file under the benchmark folder:
 
 ```bash
+dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Benchmark
+```
+
+For instrumentation of algorithmic operations, use the Release configuration:
+
+```bash
 dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Release
 ```
 
-For a validation-oriented build with extra assertions and verbose diagnostics, use:
+For a validation-oriented build with extra assertions and verbose diagnostics, use the debug configuration:
 
 ```bash
 dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Debug
@@ -37,6 +43,7 @@ The build configuration controls the compile-time flags defined in [benchmarks/D
 
 - Debug: `TEST`, `PRINT_PROGRESS`, `INSTRUMENTATION`
 - Release: `PRINT_PROGRESS`, `INSTRUMENTATION`
+- Benchmark:
 
 ## Run
 
@@ -100,14 +107,21 @@ The available solver names are:
 
 ## Output
 
-The runner writes a semicolon-separated CSV file named `DelayConstraintShortestPath.csv` into the configured `outputPath`.
+The benchmark application creates a unique run directory under `outputPath` and writes semicolon-separated CSV files named `Instances.csv` and `DelayConstraintShortestPath.csv` into this directory. It also writes `metadata.json` and `runparameters.json`. The latter contains the full parameter set used for that run.
+
+### Instances.csv
 
 Each row records:
 
 - graph topology: node count, edge count, layer width, number of layers
 - instance difficulty: weight-delay correlation, max delay, least delay, and delay along the shortest-weight path
-- solution quality: unconstrained shortest weight, dual solution metrics, and the optimal solution reported by the solvers
-- solver timings: per solver elapsed time, run count, and timeout flag
+- solution quality: unconstrained shortest weight, dual solution, and the optimal solution reported by the solvers
+
+### DelayConstraintShortestPath.csv
+
+Each row records:
+
+- solver timings: per solver mean run time, standard deviation of runs, elapsed time, run count, and timeout flag
 
 When `INSTRUMENTATION` is enabled, additional columns are appended for:
 
@@ -116,7 +130,7 @@ When `INSTRUMENTATION` is enabled, additional columns are appended for:
 - number of paths
 - number of operations
 
-The harness also creates a unique run directory under `outputPath` containing `metadata.json`. That metadata file includes:
+# metadata.json
 
 - run ID
 - UTC timestamp
@@ -125,21 +139,19 @@ The harness also creates a unique run directory under `outputPath` containing `m
 - target framework
 - runtime and OS information
 - CPU count and available memory
-- the full parameter set used for that run
-- preprocessor defines active for the build
 
 ## Validation model
 
 The benchmark is not a formal unit-test suite. It relies on randomized validation:
 
 - differential testing: all exact solvers for the same instance must agree on feasibility and optimal cost
-- invariant checks: in `TEST` builds, the code asserts structural properties of the label set during execution
+- invariant checks: in `TEST` builds, the code asserts structural properties of the algorithms during execution
 
-This is intended to catch logic errors and inconsistent pruning semantics during development; it is still an empirical validation strategy rather than a mathematical proof.
+This is intended to catch logic errors and inconsistent semantics during development; it is an empirical validation strategy rather than a mathematical proof.
 
 ## Notes
 
 - Use `Debug` for correctness-oriented runs and local validation.
-- Use `Release` for larger benchmark sweeps and performance measurement.
+- Use `Benchmark` for larger benchmark sweeps and performance measurement.
 - For reproducibility, keep the seed, generator settings, and metadata together with each output directory.
 - The solver theory and algorithmic rationale belong in the repository docs, while this file documents the harness itself.

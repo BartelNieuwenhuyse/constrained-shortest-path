@@ -50,13 +50,16 @@ if (writeOutput)
         OsDescription = RuntimeInformation.OSDescription,
         ProcessArchitecture = RuntimeInformation.ProcessArchitecture.ToString(),
         CpuLogicalCores = Environment.ProcessorCount,
-        RamBytesAvailableToProcess = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
-        Parameters = config
+        RamBytesAvailableToProcess = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes
     };
 
     File.WriteAllText(
         Path.Combine(runDir, "metadata.json"),
         JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true }));
+    
+    File.WriteAllText(
+        Path.Combine(runDir, "runparameters.json"),
+        JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true }));
 }
 
 Benchmark.Run(
@@ -101,7 +104,6 @@ internal sealed class RunMetadata
     public string ProcessArchitecture { get; set; } = "";
     public int CpuLogicalCores { get; set; }
     public long RamBytesAvailableToProcess { get; set; }
-    public RunParameters Parameters { get; set; } = new();
 }
 
 internal sealed class BuildInfo
