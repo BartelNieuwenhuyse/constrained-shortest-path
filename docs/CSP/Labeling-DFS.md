@@ -2,7 +2,7 @@
 
 [Label setting](Labeling.md) is one of the standard exact methods for the constrained shortest path problem (CSP): it combines repeatedly expanding labels along edges as representation of partial source-to-node paths and pruning to discard labels that cannot participate in an optimal feasible solution.
 
-This document zooms in on the algorithms implemented in this code base that expand labels in a depth first ordering. Let Q be a stack of candidate labels. Initialize Q with a label $(0,0,s)$ at the source. Then each time the newest element in Q is selected and expanded along all outgoing edges. New labels are added to the top of the stack Q.
+This document zooms in on the algorithms implemented in this code base that expand labels in a depth first ordering. Let Q be a stack of candidate labels. Initialize Q with a label $(0,0)$ at the source $s$. Then each time the newest element in Q is selected and expanded along all outgoing edges. New labels are added to the top of the stack Q.
 
 ```text
 1  Stack Q = {(0,0,s)}
@@ -11,7 +11,7 @@ This document zooms in on the algorithms implemented in this code base that expa
 4    if l not pruned:      // post-expansion rules
 5      for all edges e out of v:
 6        Let u = successor at head of e
-7        Let l` = new label at u (w + w(e), d + d(e), u)
+7        Let l` = new label (w + w(e), d + d(e), u)
 8        if l` not pruned: // pre-expansion rules
 9          push l` onto Q
 10     // post-recursion code
@@ -63,11 +63,14 @@ Define the label transition graph as the graph emerging from applying label sett
 
 The completion equivalence pruning we propose is an extension of the output-sensitive compilation technique of [Behle, 2007] to the weight constrained shortest path problem.
 
+### Delay completion equivalence
+
 A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an interval $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l'$ whose delay $d(p'_{s \rightarrow v})$ falls inside the interval: $L \leq d(p'_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical.
 
 This gives the following algorithm:
 
 initialization:
+
 ```text
 // initialize every node with an interval that captures infeasible 1 1 partial paths
 2 for every node v:
@@ -75,6 +78,7 @@ initialization:
 4 for the terminal:
 5   insert interval [-inf, D + 1) with completion weight 0
 ```
+
 Note: we use `+ 1` for the interval bounds, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
 post-expansion (insert at line 4):
@@ -100,6 +104,8 @@ The solution is the completion weight of the interval returned for label (0,0) a
 
 By analogy to [Behle, 2007] the label transition graph emerging from this algorithm is an exact and minimal represenation of all feasible paths for the constrained path problem.
 
+### Weight completion equivalence
+
 In the context of weight minimization, we can further strengthen the equivalence bounds $[L,U)$ by the following observation: for a minimal weight path, we are only interested in cases where the minimal weight completion to the terminal changes. I.e. it could be that below $L$ the feasible subgraph changes because more paths become feasible, but when these paths do not offer a better weight we don't really care. Reversely, it could be that above $U$ certain paths become infeasible, changing the feasible subgraph, but if the shortest weight path is still feasible we don't really care. So we derive stronger bounds, i.e. wider intervals, by setting $U$ to the delay at which the shortest weight completion to terminal becomes infeasible and $L$ to the delay below which a shorter weight completion to terminal becomes feasible.
 
 replace the post-recursion interval derivation with:
@@ -111,6 +117,8 @@ W = min over all edges(successor completion weight + edge.weight)
 U = (successor U - edge.delay) for successor that yielded min over all edges(successor completion weight + edge.weight)
 L = max over all edges(successor L - edge.delay | (successor - 1).completion weight + edge.weight < W)
 ```
+
+Intervals in this variant are not static. This is because the lower $L$ bound of the interval may at first be inaccurate and can later be superseded with a lower $L$ (while keeping the same $U$). This is because a successor interval may not have a predecessor: if no label with delay lower than successor's $L$ has arrived yet. In that case, the unconstrained shortest weight to terminal is used as an estimate of the completion weight. This, however, may turn out to be too optimistic.
 
 ## Backward dominance pruning
 
@@ -142,12 +150,14 @@ The terminal case ends the recursion: at the terminal, the label itself is store
 
 Two special cases are added to accommodate feasibility and weight bound pruning:
 
-- *feasibility*: every node is initialized with (weight,delay) pair $(-\infty, D - \lfloor d(p_{v \rightarrow t})\rfloor + 1)$ in its dominator set.
-- *weight bound*: additionally, a label can be dominated by $(\lceil w^*(p_{s \rightarrow t})\rceil - \lfloor w(p_{v \rightarrow t})\rfloor,-\infty)$ which is used as dominator for labels exceeding the weight bound.
+- *feasibility*: every node is initialized with (weight, delay) pair $(-\infty, D - \underline{d}(p_{v \rightarrow t}) + 1)$ in its dominator set.
+- *weight bound*: additionally, a label can be dominated by $(\overline{w}(p_{s \rightarrow t}) - \underline{w}(p_{v \rightarrow t}),-\infty)$ which is used as dominator for labels exceeding the weight bound.
 
 Note: we use `+ 1` for the feasibility dominator, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
-## Todo
+We calculate the dominator after all expansions. When multiple edges visit the same successor, a dominator inserted during one edge's recursion may be superseded by a stronger one when the other edge visits the same successor. This is especially important to handle the case when edges visiting the successor dominate each other: $w(e_{vu}) \le w(e'_{vu})\ and\ d(e_{vu}) \le d(e'_{vu})$.
+
+## Future work
 
 - Combine completion equivalence pruning with pruning on the weight dimension (enabling pruning by backward dominance, weight bound and\or Lagrangian bound)
 - explain and implement bidirectional variant (biPulse, [Cabrera et al., 2020]) for comparison
