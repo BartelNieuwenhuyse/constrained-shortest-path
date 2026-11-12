@@ -177,7 +177,7 @@ internal class Benchmark
                         cts.TryReset();
 
                         number_of_runs++;
-                        
+
                         // Update running mean and M2
                         double ms = timer.ElapsedMilliseconds - ElapsedMilliseconds;
                         ElapsedMilliseconds = timer.ElapsedMilliseconds;

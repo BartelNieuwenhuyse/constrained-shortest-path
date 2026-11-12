@@ -78,7 +78,7 @@ public sealed class LabelingDFSSolver : BaseSolver
         // calculate the shortest node-to-terminal distances
         // in distance metric (delay)
         // to be used for feasibility pruning (label's delay + least_delay_to_terminal > max_delay)
-        (int delay_path, int weight_of_delay_path) = least_delay_from_terminal(delay_to_terminal);
+        (int delay_path, int weight_of_delay_path) = least_delay_from_terminal(delay_to_terminal, path);
 
         if (delay_path > max_delay)
         {
@@ -96,8 +96,15 @@ public sealed class LabelingDFSSolver : BaseSolver
         _feasibility = Feasibility.feasible;
 
         // update the incumbent with the weight of the least delay path or the precalculated incumbent if it is smaller
-        _upper_bound_weight = weight_of_delay_path < incumbent ? weight_of_delay_path : incumbent;
-        _upper_bound_path = new Edge[graph.number_of_layers]; // store the best path found so far
+        if (weight_of_delay_path < incumbent)
+        {
+            set_primal_solution(weight_of_delay_path, delay_path, get_path_from_source(path));
+        }
+        else
+        {
+            _upper_bound_weight = incumbent;
+            _upper_bound_path = new Edge[graph.number_of_layers]; // reserve space to store a better path when it is found
+        }
 
         // calculate the shortest node-to-terminal distances
         // in distance metric (weight)
@@ -142,7 +149,13 @@ public sealed class LabelingDFSSolver : BaseSolver
         ++counters.number_of_labels; // label initialized at source
 #endif
         dfs_dominance(graph.source, new Distances() { weight = 0, delay = 0 }, node_labels, delay_to_terminal, weight_to_terminal, path, token);
-
+#if TEST
+        if (check)
+        {
+            if (incumbent > _upper_bound_weight && get_path_weight(_upper_bound_path) != _upper_bound_weight) { PrintFailedCheck($"Final path weight {get_path_weight(_upper_bound_path)} differs from reported final weight {_upper_bound_weight}"); }
+            if (incumbent > _upper_bound_weight && get_path_delay(_upper_bound_path) != _upper_bound_delay) { PrintFailedCheck($"Final path delay {get_path_delay(_upper_bound_path)} differs from reported final delay {_upper_bound_delay}"); }
+        }
+#endif
         return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
             , counters
@@ -183,7 +196,7 @@ public sealed class LabelingDFSSolver : BaseSolver
         // calculate the shortest node-to-terminal distances
         // in distance metric (delay)
         // to be used for feasibility pruning (label's delay + least_delay_to_terminal > max_delay)
-        (int delay_path, int weight_of_delay_path) = least_delay_from_terminal(delay_to_terminal);
+        (int delay_path, int weight_of_delay_path) = least_delay_from_terminal(delay_to_terminal, path);
 
         if (delay_path > max_delay)
         {
@@ -201,8 +214,15 @@ public sealed class LabelingDFSSolver : BaseSolver
         _feasibility = Feasibility.feasible;
 
         // update the incumbent with the weight of the least delay path or the precalculated incumbent if it is smaller
-        _upper_bound_weight = weight_of_delay_path < incumbent ? weight_of_delay_path : incumbent;
-        _upper_bound_path = new Edge[graph.number_of_layers]; // store the best path found so far
+        if (weight_of_delay_path < incumbent)
+        {
+            set_primal_solution(weight_of_delay_path, delay_path, get_path_from_source(path));
+        }
+        else
+        {
+            _upper_bound_weight = incumbent;
+            _upper_bound_path = new Edge[graph.number_of_layers]; // reserve space to store a better path when it is found
+        }
 
         // calculate the shortest node-to-terminal distances
         // in distance metric (weight)
@@ -253,7 +273,13 @@ public sealed class LabelingDFSSolver : BaseSolver
         // within weight, delay and aggregated cost bounds
         dfs_dual(graph.source, -lambda * max_delay // lower_bound = (weight + lambda * delay) - lambda * max_delay, so we already subtract the constant factor
                 , 0, 0, lambda, cost_to_terminal, delay_to_terminal, weight_to_terminal, path, token);
-
+#if TEST
+        if (check)
+        {
+            if (incumbent > _upper_bound_weight && get_path_weight(_upper_bound_path) != _upper_bound_weight) { PrintFailedCheck($"Final path weight {get_path_weight(_upper_bound_path)} differs from reported final weight {_upper_bound_weight}"); }
+            if (incumbent > _upper_bound_weight && get_path_delay(_upper_bound_path) != _upper_bound_delay) { PrintFailedCheck($"Final path delay {get_path_delay(_upper_bound_path)} differs from reported final delay {_upper_bound_delay}"); }
+        }
+#endif
         return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
                            , counters

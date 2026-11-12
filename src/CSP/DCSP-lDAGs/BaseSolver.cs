@@ -223,8 +223,9 @@ public abstract class BaseSolver
     /// for distance metric delay
     /// </summary>
     /// <param name="least_delay_per_node">stores the shortest distances (delay) to the terminal for each node</param>
+    /// <param name="predecessor_per_node">stores the predecessor of each node on the shortest path</param>
     /// <returns>shortest source to terminal distance and shortest weight along the least delay path</returns>
-    protected (int, int) least_delay_from_terminal(int[] least_delay_per_node)
+    protected (int, int) least_delay_from_terminal(int[] least_delay_per_node, Edge[] predecessor_per_node)
     {
         // keep two distance arrays (shortest weight)
         int[] weight_top = new int[graph.max_width];      // shortest weight distance to nodes in layer l + 1 
@@ -258,6 +259,9 @@ public abstract class BaseSolver
                     {
                         // shorter path found
                         least_delay_per_node[node_top.index_in_graph] = least_delay_per_node[node_bottom.index_in_graph] + dist;
+
+                        // store the predecessor of the node on the shortest path and the weight along the least delay path
+                        predecessor_per_node[node_top.index_in_graph] = edge;
                         weight_top[node_top.index_in_layer] = weight_bottom[node_bottom.index_in_layer] + weight[node_top.index_in_graph][edge.index_in_node_in];
                     }
                 }
@@ -362,7 +366,7 @@ public abstract class BaseSolver
         }
         return path_weight;
     }
-
+#endif
     /// <summary>
     /// Calculate the delay of a path given its edges
     /// </summary>
@@ -378,7 +382,6 @@ public abstract class BaseSolver
         }
         return path_delay;
     }
-#endif
 #endregion
 
     #region precision
