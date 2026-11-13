@@ -890,7 +890,7 @@ public sealed class LabelingDFSSolver : BaseSolver
                 // set U to the U of the feasible path with the lowest completion weight to terminal
                 // as above U the lowest feasible completion weight for this label becomes infeasible
                 if (successor_interval.weight_to_terminal < interval.weight_to_terminal - weight[node.index_in_graph][edge.index_in_node_in]
-                    || (successor_interval.weight_to_terminal + weight[node.index_in_graph][edge.index_in_node_in] == interval.weight_to_terminal
+                    || (successor_interval.weight_to_terminal == interval.weight_to_terminal - weight[node.index_in_graph][edge.index_in_node_in]
                         && interval.high_delay < successor_interval.high_delay - delay[node.index_in_graph][edge.index_in_node_in]))
                 {
                     interval.high_delay = successor_interval.high_delay - delay[node.index_in_graph][edge.index_in_node_in];
@@ -942,7 +942,8 @@ public sealed class LabelingDFSSolver : BaseSolver
                 // enqueue the next interval along the same edge
                 if (--max_low.pred.k_pred >= 0)
                 {
-                    max_low.dist = node_intervals[node_bottom.index_in_graph].sorted_array[max_low.pred.k_pred].low_delay - delay[node.index_in_graph][edge.index_in_node_in];
+                    ref Interval successor_interval = ref node_intervals[node_bottom.index_in_graph].sorted_array[max_low.pred.k_pred];
+                    max_low.dist = successor_interval.low_delay == int.MinValue ? int.MinValue : successor_interval.low_delay - delay[node.index_in_graph][edge.index_in_node_in];
                     max_heap.sift_down(0);
                 }
                 else
