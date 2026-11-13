@@ -29,7 +29,7 @@ public class Generator(Random rand)
             int number_of_nodes_layer = 0;
             for (n = 0; n < layers[l - 1].Length; ++n)
             {
-                int out_degree = rand.Next(1, out_degree_max);
+                int out_degree = rand.Next(1, out_degree_max + 1);
                 for (k = 0; k < out_degree; ++k)
                 {
                     int dest = rand.Next(0, max_width);
@@ -72,7 +72,7 @@ public class Generator(Random rand)
         return new GraphData(edges, layers);
     }
 
-    public (int[][], int[][]) GenerateCosts(Graph graph, int max_edge_weight, int max_edge_delay, double correlation = 0.0)
+    public (int[][], int[][]) GenerateCosts(Graph graph, int max_edge_weight, int max_edge_delay, double correlation, out int pow_edge_weight, out int pow_edge_delay)
     {
         // assign random weights on edges
         int[][] weight = new int[graph.number_of_nodes][];
@@ -96,13 +96,13 @@ public class Generator(Random rand)
             }
         }
 
-        int pow_edge_weight = rand.Next(1, 3);
+        pow_edge_weight = rand.Next(1, 3);
         for (int k = 1, i, j; k < pow_edge_weight; k++)
             for (i = 0; i < weight.Length; ++i)
                 for (j = 0; j < weight[i].Length; ++j)
                     weight[i][j] *= weight[i][j];
 
-        int pow_edge_delay = rand.Next(1, 3);
+        pow_edge_delay = rand.Next(1, 3);
         for (int k = 1, i, j; k < pow_edge_delay; k++)
             for (i = 0; i < delay.Length; ++i)
                 for (j = 0; j < delay[i].Length; ++j)

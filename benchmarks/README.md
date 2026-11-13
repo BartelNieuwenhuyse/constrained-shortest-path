@@ -114,8 +114,8 @@ The benchmark application creates a unique run directory under `outputPath` and 
 Each row records:
 
 - graph topology: node count, edge count, layer width, number of layers
-- instance difficulty: weight-delay correlation, max delay, least delay, and delay along the shortest-weight path
-- solution quality: unconstrained shortest weight, dual solution, and the optimal solution reported by the solvers
+- instance difficulty: weight-delay correlation, powers used to skew weight and delay, delay constraint limit, least delay, and delay along the shortest-weight path
+- solution quality: unconstrained shortest weight, dual incumbent, dual solution, and the optimal solution reported by the solvers
 
 ### DelayConstraintShortestPath.csv
 
@@ -130,7 +130,7 @@ When `INSTRUMENTATION` is enabled, additional columns are appended for:
 - number of paths
 - number of operations
 
-# metadata.json
+### metadata.json
 
 - run ID
 - UTC timestamp

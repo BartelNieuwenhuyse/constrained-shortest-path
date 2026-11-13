@@ -36,7 +36,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
         // start with the shortest weight path
         int weight_path_weight = shortest_weight();
         int weight_path_delay = path_delay_from_first_edge();
-
+#if INSTRUMENTATION
+		++counters.number_of_paths; // shortest weight path
+#endif
         if (weight_path_delay <= max_delay)
         {
             // shortest weight path is feasible: we are done
@@ -53,7 +55,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
                 new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
-                , counters
+                , counters with { iterations = _iteration }
 #endif
                 );
         }
@@ -63,7 +65,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
         // caclulate the least delay path
         _iteration++;
         int delay_path_delay = least_delay();
-
+#if INSTRUMENTATION
+		++counters.number_of_paths; // least delay path
+#endif
         if (delay_path_delay > max_delay)
         {
             // least delay path is infeasible: we are done
@@ -73,7 +77,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
 #endif
             return new Solution(_feasibility, null, null
 #if INSTRUMENTATION
-                , counters
+                , counters with { iterations = _iteration }
 #endif
                 );
         }
@@ -104,6 +108,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
 #endif
             // calculate shortest aggregated cost path with new lambda
             double path_aggregated_cost = shortest_cost(lambda);
+#if INSTRUMENTATION
+	    	++counters.number_of_paths; // path for new lambda estimate
+#endif
             delay = path_delay_from_first_edge();
             int weight = path_weight_from_first_edge();
 #if TEST
@@ -183,7 +190,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                             new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
                             new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
-                            , counters
+                            , counters with { iterations = _iteration }
 #endif
                             );
     }
@@ -206,7 +213,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
         // start with the shortest weight path
         int weight_path_weight = equality_weight_graph(equality_subgraph);
         int weight_path_delay = least_delay_on_equality_graph(equality_subgraph);
-
+#if INSTRUMENTATION
+        counters.number_of_paths += 2; // shortest weight path
+#endif
         if (weight_path_delay <= max_delay)
         {
             // shortest weight path is feasible: we are done
@@ -223,7 +232,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
                 new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
-                , counters
+                , counters with { iterations = _iteration }
 #endif
                 );
         }
@@ -233,7 +242,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
         // calculate the least delay path
         _iteration++;
         int delay_path_delay = equality_delay_graph(equality_subgraph);
-
+#if INSTRUMENTATION
+        ++counters.number_of_paths; // least delay path
+#endif
         if (delay_path_delay > max_delay)
         {
             // least delay path is infeasible: we are done
@@ -243,13 +254,15 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
 #endif
             return new Solution(_feasibility, null, null
 #if INSTRUMENTATION
-                                , counters
+                                , counters with { iterations = _iteration }
 #endif
                                 );
         }
         _feasibility = Feasibility.feasible;
         int delay_path_weight = shortest_weight_on_equality_graph(equality_subgraph);
-
+#if INSTRUMENTATION
+        ++counters.number_of_paths; // shortest weight path on equality graph
+#endif
         if (delay_path_delay == max_delay)
         {
             // lower bound = upper bound: we are done
@@ -265,7 +278,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
                 new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
-                , counters
+                , counters with { iterations = _iteration }
 #endif
                 );
         }
@@ -296,13 +309,22 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
 #endif
             // calculate shortest aggregated cost path with new lambda
             double path_aggregated_cost = equality_graph(lambda, equality_subgraph);
+#if INSTRUMENTATION
+            ++counters.number_of_paths; // path for new lambda estimate
+#endif
 #if TEST
             if (verbose) { Console.WriteLine($"lower bound: {path_aggregated_cost - lambda * max_delay}"); }
 #endif
             if (IsEqual(path_aggregated_cost, weight_path_weight + lambda * weight_path_delay))
             {
                 // optimum reached
-                if (path_delay_from_first_edge() > max_delay) least_delay_on_equality_graph(equality_subgraph); // get (back to) the feasible solution on the equality graph
+                if (path_delay_from_first_edge() > max_delay)
+                {
+                    least_delay_on_equality_graph(equality_subgraph); // get (back to) the feasible solution on the equality graph
+#if INSTRUMENTATION
+                    ++counters.number_of_paths; // path on equality graph
+#endif
+                }
                 set_dual_solution(delay_path_weight, delay_path_delay, lambda);
                 break;
             }
@@ -315,6 +337,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 // new path is infeasible
                 // get the least infeasible path on the equality graph
                 delay = least_delay_on_equality_graph(equality_subgraph);
+#if INSTRUMENTATION
+                ++counters.number_of_paths; // path on equality graph
+#endif
 #if TEST
                 if (verbose) { Console.WriteLine($"feasibility: {delay} <= {max_delay}"); }
 #endif
@@ -346,6 +371,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                 // get the lowest cost path on the equality graph
                 int weight = shortest_weight_on_equality_graph(equality_subgraph);
                 delay = path_delay_from_first_edge();
+#if INSTRUMENTATION
+                ++counters.number_of_paths; // path on equality graph
+#endif
 #if TEST
                 if (verbose) { Console.WriteLine($"feasibility: {delay} <= {max_delay}"); }
 #endif
@@ -357,6 +385,9 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                         // get (back to) the feasible solution on the equality graph
                         delay = least_delay_on_equality_graph(equality_subgraph);
                         weight = path_weight_from_first_edge();
+#if INSTRUMENTATION
+                        ++counters.number_of_paths; // path on equality graph
+#endif
                     }
                     set_dual_solution(weight, delay, lambda);
                     break;
@@ -391,7 +422,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
                             new DualSolution(_dual_path_weight, _dual_path_delay, _dual_lambda),
                             new PrimalSolution(_upper_bound_weight, _upper_bound_delay, get_path_from_first_edge())
 #if INSTRUMENTATION
-                            , counters
+                            , counters with { iterations = _iteration }
 #endif
                             );
     }

@@ -89,7 +89,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
             return new Solution(Feasibility.infeasible, null, null
 #if INSTRUMENTATION
-                                , counters
+                                , counters with { iterations = _iteration }
 #endif
                                 );
         }
@@ -125,7 +125,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
             return new Solution(_feasibility, null, new PrimalSolution(weight_path, delay_of_weight_path, _upper_bound_path)
 #if INSTRUMENTATION
-                                , counters
+                                , counters with { iterations = _iteration }
 #endif
                                 );
         }
@@ -158,7 +158,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
         return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
-            , counters
+            , counters with { iterations = _iteration }
 #endif
             );
     }
@@ -207,7 +207,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
             return new Solution(Feasibility.infeasible, null, null
 #if INSTRUMENTATION
-                                , counters
+                                , counters with { iterations = _iteration }
 #endif
                                 );
         }
@@ -243,7 +243,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
             return new Solution(_feasibility, null, new PrimalSolution(weight_path, delay_of_weight_path, _upper_bound_path)
 #if INSTRUMENTATION
-                                , counters
+                                , counters with { iterations = _iteration }
 #endif
                                 );
         }
@@ -282,7 +282,7 @@ public sealed class LabelingDFSSolver : BaseSolver
 #endif
         return new Solution(_feasibility, null, new PrimalSolution(_upper_bound_weight, _upper_bound_delay, _upper_bound_path)
 #if INSTRUMENTATION
-                           , counters
+                           , counters with { iterations = _iteration }
 #endif
                            );
     }

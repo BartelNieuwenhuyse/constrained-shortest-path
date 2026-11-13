@@ -1,4 +1,5 @@
-﻿using DataStructures;
+﻿using System.Numerics;
+using DataStructures;
 
 namespace DelayConstrainedShortestPath;
 
@@ -31,10 +32,10 @@ public sealed record PrimalSolution(int weight, int delay, Edge[] path);
 #if INSTRUMENTATION
 public sealed record InstrumentationCounters
 {
-    public int iteration = 0;
-    public int number_of_paths = 0;
-    public int number_of_labels = 0;
-    public int number_of_ops = 0;
+    public BigInteger iterations = 0;
+    public BigInteger number_of_paths = 0;
+    public BigInteger number_of_labels = 0;
+    public BigInteger number_of_ops = 0;
 }
 #endif
 public sealed record Solution(

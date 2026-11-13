@@ -81,10 +81,12 @@ internal class Benchmark
 
                 // Generate random weights and delays for the edges of the DAG
                 int weight_delay_correlation = rand.Next(0, 100);
+                int pow_edge_weight = 0, pow_edge_delay = 0;
                 (int[][] weight, int[][] delay) = generator.GenerateCosts(DAG,
                     max_edge_weight: rand.Next(1, Math.Min(5000, DAG.number_of_edges)),
                     max_edge_delay: rand.Next(1, Math.Min(5000, DAG.number_of_edges)),
-                    correlation: weight_delay_correlation / 100.0
+                    correlation: weight_delay_correlation / 100.0,
+                    out pow_edge_weight, out pow_edge_delay
                     );
 
                 // Calculate a delay threshold such that in most cases at least the shortest weight path is infeasible and at least one path is feasible.
@@ -107,9 +109,9 @@ internal class Benchmark
                     // graph topology
                     headers_instances += ";nodes;edges;width;height";
                     // problem difficulty: weight - delay correlation, delay tightness
-                    headers_instances += ";weight delay correlation;max delay;least delay;delay least weight path";
+                    headers_instances += ";weight delay correlation;pow delay;pow weight;delay constraint limit;least delay;delay least weight path";
                     // solution quality: optimality and duality gap
-                    headers_instances += ";unconstrained least weight;dual solution;optimal solution";
+                    headers_instances += ";unconstrained least weight;dual incumbent;dual solution;optimal solution";
 
                     // instance and  solver identifier
                     string headers_run = "graph id;solver";
@@ -127,7 +129,7 @@ internal class Benchmark
                 // graph topology
                 output_line_instances += $";{DAG.number_of_nodes};{DAG.number_of_edges};{DAG.max_width};{DAG.number_of_layers}";
                 // problem difficulty: weight - delay
-                output_line_instances += $";{weight_delay_correlation};{max_delay};{ld};{dasw}";
+                output_line_instances += $";{weight_delay_correlation};{pow_edge_delay};{pow_edge_weight};{max_delay};{ld};{dasw}";
                 // solution quality: optimality and duality gap
                 output_line_instances += $";{lw}";
 
@@ -188,20 +190,35 @@ internal class Benchmark
 
                     lambda = solution?.dual?.lambda ?? 0;
                     incumbent = solution?.primal?.weight ?? incumbent;
-                    int dual_weight = solution?.dual?.weight ?? 0;
+                    double dual_opt = solution?.dual == null ? 0 : solution.dual.weight + solution.dual.lambda * (solution.dual.delay - max_delay);
 
-                    Console.WriteLine($"Solved to lambda {lambda} and upper bound {dual_weight} in {mean / 1000}");
-
+                    Console.WriteLine($"Solved to lambda {lambda} and upper bound {dual_opt} in {mean / 1000}"
+#if INSTRUMENTATION
+                        + " using:"
+                        + ((solution?.counters?.iterations ?? 0) != 0
+                            ? $" {solution?.counters?.iterations} iterations"
+                            : "")
+                        + ((solution?.counters?.number_of_paths ?? 0) != 0
+                            ? $" {solution?.counters?.number_of_paths} paths"
+                            : "")
+                        + ((solution?.counters?.number_of_labels ?? 0) != 0
+                            ? $" {solution?.counters?.number_of_labels} labels"
+                            : "")
+                        + ((solution?.counters?.number_of_ops ?? 0) != 0
+                            ? $" {solution?.counters?.number_of_ops} ops"
+                            : "")
+#endif
+                    );
                     if (writeOutput)
                     {
-                        output_line_instances += $";{dual_weight}";
+                        output_line_instances += $";{incumbent};{dual_opt}";
 
                         string output_line_runs = $"{graph_id};dual kelley pd";
                         // performance
                         output_line_runs += $";{mean};{(number_of_runs > 1 ? Math.Sqrt(m2 / (number_of_runs - 1)) : 0.0)};{ElapsedMilliseconds};{number_of_runs};{(IsCancelled ? 1 : 0)}";
 #if INSTRUMENTATION
                         // instrumentation: number of labels and number of operations
-                        output_line_runs += $";{solution?.counters?.iteration.ToString() ?? ""};{solution?.counters?.number_of_labels.ToString() ?? ""};{solution?.counters?.number_of_paths.ToString() ?? ""};{solution?.counters?.number_of_ops.ToString() ?? ""}";
+                        output_line_runs += $";{solution?.counters?.iterations.ToString() ?? ""};{solution?.counters?.number_of_labels.ToString() ?? ""};{solution?.counters?.number_of_paths.ToString() ?? ""};{solution?.counters?.number_of_ops.ToString() ?? ""}";
 #endif
                         File.AppendAllText(output_file_runs, Environment.NewLine + output_line_runs);
                     }
@@ -222,6 +239,7 @@ internal class Benchmark
                     double mean = 0.0;       // running mean
                     double m2 = 0.0;         // sum of squared deviations from the running mean
                     long ElapsedMilliseconds = 0; 
+                    solution = null;
                     do
                     {
                         Input input = new Input()
@@ -326,8 +344,8 @@ internal class Benchmark
                     Console.WriteLine($"{solver} found optimal path with weight {solution?.primal?.weight ?? 0} and delay no greater than {max_delay} in {mean / 1000}"
 #if INSTRUMENTATION
                         + " using:"
-                        + ((solution?.counters?.iteration ?? 0) != 0
-                        ? $" {solution?.counters?.iteration} iterations"
+                        + ((solution?.counters?.iterations ?? 0) != 0
+                        ? $" {solution?.counters?.iterations} iterations"
                         : "")
                         + ((solution?.counters?.number_of_paths ?? 0) != 0
                         ? $" {solution?.counters?.number_of_paths} paths"
@@ -373,7 +391,7 @@ internal class Benchmark
                         // performance
                         output_line_runs += $";{mean};{(number_of_runs > 1 ? Math.Sqrt(m2 / (number_of_runs - 1)) : 0.0)};{ElapsedMilliseconds};{number_of_runs};{(IsCancelled ? 1 : 0)}";
 #if INSTRUMENTATION
-                        output_line_runs += $";{solution?.counters?.iteration.ToString() ?? ""};{solution?.counters?.number_of_labels.ToString() ?? ""};{solution?.counters?.number_of_paths.ToString() ?? ""};{solution?.counters?.number_of_ops.ToString() ?? ""}";
+                        output_line_runs += $";{solution?.counters?.iterations.ToString() ?? ""};{solution?.counters?.number_of_labels.ToString() ?? ""};{solution?.counters?.number_of_paths.ToString() ?? ""};{solution?.counters?.number_of_ops.ToString() ?? ""}";
 #endif
                         File.AppendAllText(output_file_runs, Environment.NewLine + output_line_runs);
                     }
