@@ -39,7 +39,7 @@ For a validation-oriented build with extra assertions and verbose diagnostics, u
 dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Debug
 ```
 
-The build configuration controls the compile-time flags defined in [benchmarks/Directory.Build.props](benchmarks/Directory.Build.props):
+The build configuration controls the compile-time flags defined in [Directory.Build.props](Directory.Build.props):
 
 - Debug: `TEST`, `PRINT_PROGRESS`, `INSTRUMENTATION`
 - Release: `PRINT_PROGRESS`, `INSTRUMENTATION`
@@ -66,7 +66,7 @@ Optional CLI flag:
 
 ## Configuration file
 
-The runner reads a JSON object using case-insensitive property names, so `camelCase` and `PascalCase` keys both work. The shipped [benchmarks/CSP/DCSP-lDAGs/runsettings.json](benchmarks/CSP/DCSP-lDAGs/runsettings.json) contains the default values:
+The runner reads a JSON object using case-insensitive property names, so `camelCase` and `PascalCase` keys both work. The shipped [runsettings.json](CSP/DCSP-lDAGs/runsettings.json) contains the default values:
 
 ```json
 {

@@ -21,7 +21,7 @@ $$
 
 The weight and delay of a path are supposed to be the sum of the weight respectively delay of the edges constituting the path. The codebase works with none-negative integers for weight and delay.
 
-Current focus is on one constraint (DCLC) on layered acyclic multi-digraphs (DAG). In such graphs, nodes are partitioned in layers and edges only connect nodes from layer $L$ to layer $L+1$. The top layer consists of only the source node and the bottom layer has only the terminal node. Such specific layered DAGs are a weighted extension of Decision Diagrams (DD) [Hooker, 2013] and may be constructed from the state-transition graph of recursive dynamic programming formulations [Bergman et al. 2021]. [Read more](Motivation.md) about our motivation to use layered DAGs.
+Current focus is on one constraint (DCLC) on layered acyclic multi-digraphs (DAG). In such graphs, nodes are partitioned in layers and edges only connect nodes from layer $L$ to layer $L+1$. The top layer consists of only the source node and the bottom layer has only the terminal node. Such specific layered DAGs are a weighted extension of Decision Diagrams (DD) [Hooker, 2013] and may be constructed from the state-transition graph of recursive dynamic programming formulations [Bergman et al. 2021]. Read about our [motivation](Motivation.md) to use layered DAGs.
 
 Where applicable, the code exploits the layered structure for better performance, smaller memory or simplicity. Unless specified, it is however not required for correctness of the algorithms. All algorithmic ideas extend to general DAGs when layer-by-layer traversal is replaced by topological ordering.
 
@@ -90,6 +90,10 @@ We propose two new pruning rules that are used in label setting with a depth fir
 
 - **Backwards dominance pruning**: computed after successor exploration and before backtracking. Achieves stronger pruning by leveraging dominating labels at successor nodes rather than the incoming label.
 - **Completion equivalence pruning**: partitions the delay space at each node into intervals sharing the same optimal completion weight. Labels falling within the same interval can be fathomed.
+
+## Benchmarking
+
+The different solvers are benchmarked on randomly generated graphs and input data. Results will be shared on the [Benchmarks](Benchmarks.md) page. The [benchmark/](../benchmarks/) directory explains the benchmark applications, their configuration, data generation and output.
 
 ## Documentation structure
 

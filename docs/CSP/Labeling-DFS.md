@@ -8,16 +8,16 @@ This document zooms in on the algorithms implemented in this code base that expa
 1  Stack Q = {(0,0,s)}
 2  while Q not empty:
 3    Label l(w,d,v) = pop top of Q
-4    if l not pruned:      // post-expansion rules
+4    if l not pruned:      // post-expansion
 5      for all edges e out of v:
 6        Let u = successor at head of e
 7        Let l` = new label (w + w(e), d + d(e), u)
-8        if l` not pruned: // pre-expansion rules
+8        if l` not pruned: // pre-expansion
 9          push l` onto Q
-10     // post-recursion code
+10     // post-recursion
 ```
 
-Algorithms in this category differ in which pruning rules are applied. See [Pruning](Labeling.md#pruning) for an overview. And they differ when pruning is applied: pre-expansion pruning happens before a new label is pushed onto the stack (line 8), post-expansion after a label is popped from the stack and before it is treated (line 4).
+Algorithms in this category differ in which pruning rules are applied. See [Pruning](Labeling.md#pruning) for an overview. And they differ when pruning is applied: pre-expansion pruning happens before a new label is pushed onto the stack (line 8), post-expansion after a label is popped from the stack and before it is treated (line 4). Post-recursion code executes after the entire subtree below has returned (line 10).
 
 ## Reference algorithms
 
@@ -27,18 +27,18 @@ Examples from the literature on which we based our reference algorithms are:
 
 The Pulse algorithm [Lozano and Medaglia, 2013] is based on a recursive depth-first search. It exploits three pruning strategies to avoid complete exploration of the solution space: feasibility, weight bound and dominance.
 
-post-expansion (insert at line 4):
+post-expansion:
 
 ```text
-4.1 if label l not dominated:
-4.2   add label l to non-dominated set
+if label l not dominated:
+  add label l to non-dominated set
 ```
 
-pre-expansion (insert at line 8):
+pre-expansion:
 
 ```text
-8.1 if label l' is feasible:
-8.2   if label l' weight bound: 
+if label l' is feasible:
+  if label l' weight bound: 
 ```
 
 Note: the original Pulse algorithm as described in [Lozano and Medaglia, 2013] limits the size of the non-dominated label set stored at each node and describes rules for which labels to remove from the storage when that limit would otherwise be exceeded. This is not part of our implementation, we store all non-dominated labels at each node.
@@ -47,10 +47,12 @@ Note: the original Pulse algorithm as described in [Lozano and Medaglia, 2013] l
 
 Lagrangian Relaxation and Enumeration (LRE) [Carlyle et al., 2008] is based on near shortest path enumeration [Carlyle and Wood, 2005], [Byers and Waterman, 1984]. It expands partial paths in a depth-first search order and prunes on feasibility, weight bound and Lagrangian bound.
 
+post expansion:
+
 ```text
-4.1 if label l within Lagrangian bound:
-4.2   if label l within weight bound:
-4.3     if label l feasible:
+if label l within Lagrangian bound:
+  if label l within weight bound:
+    if label l feasible:
 ```
 
 ## Completion equivalence pruning
@@ -65,7 +67,7 @@ The completion equivalence pruning we propose is an extension of the output-sens
 
 ### Delay completion equivalence
 
-A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an interval $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l'$ whose delay $d(p'_{s \rightarrow v})$ falls inside the interval: $L \leq d(p'_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical.
+A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an interval $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l'$ whose delay $d(p'_{s \rightarrow v})$ falls inside the interval: $L \leq d(p'_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical. We define the completion weight of an interval as the weight of the shortest delay-feasible path from its node to the terminal for a label whose delay lies within the interval's bounds $[L,U)$.
 
 This gives the following algorithm:
 
@@ -81,16 +83,16 @@ initialization:
 
 Note: we use `+ 1` for the interval bounds, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
-post-expansion (insert at line 4):
+post-expansion:
 
 ```text
-4.1 if delay of label l falls into an existing interval at node:
-4.2   return
+if delay of label l falls into an existing interval at node:
+  return
 ```
 
 After having expanded to all successors along all edges, a new interval is created and added to the set of intervals at the node:
 
-post-recursion (insert after line 9):
+post-recursion:
 
 ```text
 add interval [L,U) with completion weight W to the set of intervals, where:
@@ -118,7 +120,7 @@ U = (successor U - edge.delay) for successor that yielded min over all edges(suc
 L = max over all edges(successor L - edge.delay | (successor - 1).completion weight + edge.weight < W)
 ```
 
-Intervals in this variant are not static. This is because the lower $L$ bound of the interval may at first be inaccurate and can later be superseded with a lower $L$ (while keeping the same $U$). This is because a successor interval may not have a predecessor: if no label with delay lower than successor's $L$ has arrived yet. In that case, the unconstrained shortest weight to terminal is used as an estimate of the completion weight. This, however, may turn out to be too optimistic.
+Intervals in this variant are not static. The lower bound $L$ may initially be inaccurate and is later superseded by a smaller $L$ (while $U$ stays the same). This happens when a successor interval has no predecessor yet — no label with a lower delay has visited that successor — in which case the unconstrained shortest weight to terminal is used as an estimate of the preceding interval's completion weight. This estimate is a lower bound; if it turns out to be too optimistic, the initial $L$ is set too high and is corrected downwards when a later label recomputes the interval with the now-known predecessor.
 
 ## Backward dominance pruning
 
@@ -127,6 +129,8 @@ The traditional dominance pruning maintains a set of non-dominated labels at eac
 We propose a stronger dominance by the following observation: if label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ at node $v$ is expanded to successor node $u$ along edge $e$ and is dominated at node $u$ by dominator $(w',d')$, then any label at node $v$ that is dominated by $(w' - w(e_{vu}), d' - d(e_{vu}))$ will be dominated by $(w',d')$ at node $u$. Since domination at node $u$ means: $w(p_{s \rightarrow v}) + w(e_{vu}) \ge w'$ and $d(p_{s \rightarrow v}) + d(e_{vu}) \ge d'$, we can say that $w' - w(e_{vu}) \le w(p_{s \rightarrow v})$ and $d' - d(e_{vu}) \le d(p_{s \rightarrow v})$. So the pair $(w' - w(e_{vu}), d' - d(e_{vu}))$ gives a stronger bound than the original label $(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$.
 
 In case of multiple outgoing edges, we need to make sure that future labels will be dominated along all edges. In a DFS ordering, all successors are visited before backtracking. This makes it possible to gather all successor dominators along all edges before constructing a dominator to be added to this node's set for future dominance pruning. To ensure future labels dominated by dominator $(w,d)$ are guaranteed to be dominated along all expansions somewhere in the subgraph rooted at node $v$, the dominator is constructed as the piecewise maximum:
+
+post recursion:
 
 ```text
 dominator.weight = max over all edges(successor dominator.weight - edge.weight)
