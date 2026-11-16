@@ -96,6 +96,22 @@ readonly struct DistancesDelayComparer : IComparer<Distances, int>
     }
 }
 
+/// <summary>
+/// Helper structure for managing the memory of the arrays used in the dfs label setting algorithms.
+/// This structure helps in reusing the arrays to avoid frequent allocations and deallocations, improving performance.
+/// </summary>
+class PostDFSRecursionWorkspace
+{
+    public int number_of_successors;
+    public int[] successor_index;
+    public int[] edge_index;
+
+    public PostDFSRecursionWorkspace(in Graph graph)
+    {
+        successor_index = new int[graph.max_edges_out_of_node];
+        edge_index = new int[graph.max_edges_out_of_node];
+    }
+}
 #endregion
 
 public sealed class LabelingDFSSolver : BaseSolver
@@ -215,8 +231,8 @@ public sealed class LabelingDFSSolver : BaseSolver
         }
 
         // workspaces for storing temporary data during dfs without reallocating memory at every recursion
-        int[][] workspaces = new int[graph.number_of_layers][];
-        for (int l = 0; l < graph.number_of_layers; ++l) workspaces[l] = new int[graph.max_edges_out_of_node];
+        PostDFSRecursionWorkspace[] workspaces = new PostDFSRecursionWorkspace[graph.number_of_layers];
+        for (int l = 0; l < graph.number_of_layers; ++l) workspaces[l] = new PostDFSRecursionWorkspace(graph);
 
 #if INSTRUMENTATION
         ++counters.number_of_labels; // label initialized at source
@@ -493,7 +509,7 @@ public sealed class LabelingDFSSolver : BaseSolver
     /// <param name="path">the current path from source to this node</param>
     /// <param name="workspaces">the workspaces for temporary storage during DFS</param>
     /// <param name="token">the cancellation token to observe</param>
-    int dfs_back_dominance(Node node, Distances label, SortedLabelArray[] node_dominators, int[] least_delay_to_terminal, int[] shortest_weight_to_terminal, Edge[] path, int[][] workspaces, CancellationToken token)
+    int dfs_back_dominance(Node node, Distances label, SortedLabelArray[] node_dominators, int[] least_delay_to_terminal, int[] shortest_weight_to_terminal, Edge[] path, PostDFSRecursionWorkspace[] node_workspaces, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 #if TEST
@@ -556,8 +572,9 @@ public sealed class LabelingDFSSolver : BaseSolver
         }
         else // none terminal case
         {
-            int[] workspace = workspaces[node.index_of_layer];
-
+            PostDFSRecursionWorkspace workspace = node_workspaces[node.index_of_layer];
+            workspace.number_of_successors = 0;
+            
             // recurse
             for (int e = 0; e < node.number_of_edges_out; ++e)
             {
@@ -569,29 +586,6 @@ public sealed class LabelingDFSSolver : BaseSolver
                 // weight pruning
                 if (label.weight + weight[node.index_in_graph][edge.index_in_node_in] + shortest_weight_to_terminal[node_bottom.index_in_graph] >= _upper_bound_weight)
                 {
-                    continue;
-                }
-                else
-                {
-                    // go into successor node, and store the index of the dominator returned
-                    path[node_bottom.index_of_layer] = edge; // track the edge to reconstruct the path when reaching the terminal
-
-                    workspace[e] = dfs_back_dominance(node_bottom,
-                        new Distances()
-                        {
-                            delay = label.delay + delay[node.index_in_graph][edge.index_in_node_in],
-                            weight = label.weight + weight[node.index_in_graph][edge.index_in_node_in]
-                        }, node_dominators, least_delay_to_terminal, shortest_weight_to_terminal, path, workspaces, token);
-                }
-            }
-
-            for (int e = 0; e < node.number_of_edges_out; ++e)
-            {
-                Edge edge = node.edges_out[e];
-
-                // weight pruned?
-                if (label.weight + weight[node.index_in_graph][edge.index_in_node_in] + shortest_weight_to_terminal[edge.index_in_graph_of_node_out] >= _upper_bound_weight)
-                {
                     // act as if it is dominated by (_upper_bound_weight- shortest_weight_to_terminal, int.MinValue)
                     if (dominator.weight < _upper_bound_weight - weight[node.index_in_graph][edge.index_in_node_in] - shortest_weight_to_terminal[edge.index_in_graph_of_node_out])
                     {
@@ -600,28 +594,47 @@ public sealed class LabelingDFSSolver : BaseSolver
                 }
                 else
                 {
-                    // shift back to the correct index after the underlying sorted array may have changed if the same node is visited by multiple edges
-                    int successor_index = workspace[e];
-                    ref SortedLabelArray successor_dominators = ref node_dominators[edge.index_in_graph_of_node_out];
-                    while (successor_index >= 0 && (successor_index >= successor_dominators.array_size || successor_dominators.sorted_array[successor_index].delay > label.delay + delay[node.index_in_graph][edge.index_in_node_in])) --successor_index;
-                    while (successor_index + 1 < successor_dominators.array_size && successor_dominators.sorted_array[successor_index + 1].delay <= label.delay + delay[node.index_in_graph][edge.index_in_node_in]) ++successor_index;
-                    ref Distances successor_label = ref successor_dominators.sorted_array[successor_index];
+                    // go into successor node, and store the index of the dominator returned
+                    path[node_bottom.index_of_layer] = edge; // track the edge to reconstruct the path when reaching the terminal
+                    
+                    workspace.successor_index[workspace.number_of_successors] = dfs_back_dominance(node_bottom,
+                        new Distances()
+                        {
+                            delay = label.delay + delay[node.index_in_graph][edge.index_in_node_in],
+                            weight = label.weight + weight[node.index_in_graph][edge.index_in_node_in]
+                        }, node_dominators, least_delay_to_terminal, shortest_weight_to_terminal, path, node_workspaces, token);
+                    
+                    // store it in the workspace, postpone deriving dominator until all successors visited
+                    workspace.edge_index[workspace.number_of_successors] = e;
+                    ++workspace.number_of_successors;
+                }
+            }
 
-                    // construct the dominator as the piece-wise max of the successor dominators
-                    // dominator.delay = max(successor delay - edge delay)
-                    // dominator.weight = max(successor weight - edge weight)
-                    // example: label (5,6) at node v with edge (1,2) to node u is dominated by (4,2) at node u
-                    //                                with edge (3,1) to node u is dominated by (4,2) at node u
-                    //          then we know that any label arriving at node v dominated by (max[4-1,4-3],max[2-2,2-1]) = (3,1)
-                    //          will be dominated at node u by every expansion from v to u: (3,1)+(1,2)>=(4,2) and (3,1)+(3,1)>=(4,2)  
-                    if (dominator.delay < successor_label.delay - delay[node.index_in_graph][edge.index_in_node_in])
-                    {
-                        dominator.delay = successor_label.delay - delay[node.index_in_graph][edge.index_in_node_in];
-                    }
-                    if (dominator.weight + weight[node.index_in_graph][edge.index_in_node_in] < successor_label.weight)
-                    {
-                        dominator.weight = successor_label.weight - weight[node.index_in_graph][edge.index_in_node_in];
-                    }
+            for (int s = 0; s < workspace.number_of_successors; ++s)
+            {
+                Edge edge = node.edges_out[workspace.edge_index[s]];
+
+                // shift back to the correct index after the underlying sorted array may have changed if the same node is visited by multiple edges
+                int successor_index = workspace.successor_index[s];
+                ref SortedLabelArray successor_dominators = ref node_dominators[edge.index_in_graph_of_node_out];
+                while (successor_index >= 0 && (successor_index >= successor_dominators.array_size || successor_dominators.sorted_array[successor_index].delay > label.delay + delay[node.index_in_graph][edge.index_in_node_in])) --successor_index;
+                while (successor_index + 1 < successor_dominators.array_size && successor_dominators.sorted_array[successor_index + 1].delay <= label.delay + delay[node.index_in_graph][edge.index_in_node_in]) ++successor_index;
+                ref Distances successor_label = ref successor_dominators.sorted_array[successor_index];
+
+                // construct the dominator as the piece-wise max of the successor dominators
+                // dominator.delay = max(successor delay - edge delay)
+                // dominator.weight = max(successor weight - edge weight)
+                // example: label (5,6) at node v with edge (1,2) to node u is dominated by (4,2) at node u
+                //                                with edge (3,1) to node u is dominated by (4,2) at node u
+                //          then we know that any label arriving at node v dominated by (max[4-1,4-3],max[2-2,2-1]) = (3,1)
+                //          will be dominated at node u by every expansion from v to u: (3,1)+(1,2)>=(4,2) and (3,1)+(3,1)>=(4,2)  
+                if (dominator.delay < successor_label.delay - delay[node.index_in_graph][edge.index_in_node_in])
+                {
+                    dominator.delay = successor_label.delay - delay[node.index_in_graph][edge.index_in_node_in];
+                }
+                if (dominator.weight + weight[node.index_in_graph][edge.index_in_node_in] < successor_label.weight)
+                {
+                    dominator.weight = successor_label.weight - weight[node.index_in_graph][edge.index_in_node_in];
                 }
             }
         }
