@@ -122,6 +122,8 @@ L = max over all edges(successor L - edge.delay | (successor - 1).completion wei
 
 Intervals in this variant are not static. The lower bound $L$ may initially be inaccurate and is later superseded by a smaller $L$ (while $U$ stays the same). This happens when a successor interval has no predecessor yet — no label with a lower delay has visited that successor — in which case the unconstrained shortest weight to terminal is used as an estimate of the preceding interval's completion weight. This estimate is a lower bound; if it turns out to be too optimistic, the initial $L$ is set too high and is corrected downwards when a later label recomputes the interval with the now-known predecessor.
 
+A worked out example can be found in the [example](examples/Labeling-DFS.md#Completion%20equivalence) directory.
+
 ## Backward dominance pruning
 
 The traditional dominance pruning maintains a set of non-dominated labels at each node. New labels that arrive at this node are compared to the existing set for dominance. If dominated by at least one label in the set, the new label is not expanded further. If not dominated by any label in the set, the new label is added to the set and expanded further along outgoing edges.
@@ -160,6 +162,8 @@ Two special cases are added to accommodate feasibility and weight bound pruning:
 Note: we use `+ 1` for the feasibility dominator, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
 We calculate the dominator after all expansions. When multiple edges visit the same successor, a dominator inserted during one edge's recursion may be superseded by a stronger one when the other edge visits the same successor. This is especially important to handle the case when edges visiting the successor dominate each other: $w(e_{vu}) \le w(e'_{vu})\ and\ d(e_{vu}) \le d(e'_{vu})$.
+
+A worked out example can be found in the [example](examples/Labeling-DFS.md#Dominance%20vs.%20backward%20dominance) directory.
 
 ## Future work
 
