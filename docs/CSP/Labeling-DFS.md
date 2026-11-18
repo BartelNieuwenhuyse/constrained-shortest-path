@@ -67,7 +67,7 @@ The completion equivalence pruning we propose is an extension of the output-sens
 
 ### Delay completion equivalence
 
-A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an interval $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l'$ whose delay $d(p'_{s \rightarrow v})$ falls inside the interval: $L \leq d(p'_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical. We define the completion weight of an interval as the weight of the shortest delay-feasible path from its node to the terminal for a label whose delay lies within the interval's bounds $[L,U)$.
+A direct translation could be described as: for every label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ arriving at a node $v$ during depth first traversal, an interval $[L,U)$ can be derived after the label has been expanded to all successors and before backtracking. Any future label $l^{\prime}$ whose delay $d(p^{\prime}_{s \rightarrow v})$ falls inside the interval: $L \leq d(p^{\prime}_{s \rightarrow v}) \lt U$ has equivalent delay completion to label $l$. I.e. the subgraph of feasible completions from node $v$ to the terminal $t$ is isomorphic for all delays in the range $[L,U)$. This means that the shortest weight over this isomorphic subgraphs is also identical. We define the completion weight of an interval as the weight of the shortest delay-feasible path from its node to the terminal for a label whose delay lies within the interval's bounds $[L,U)$.
 
 This gives the following algorithm:
 
@@ -108,7 +108,9 @@ By analogy to [Behle, 2007] the label transition graph emerging from this algori
 
 ### Weight completion equivalence
 
-In the context of weight minimization, we can further strengthen the equivalence bounds $[L,U)$ by the following observation: for a minimal weight path, we are only interested in cases where the minimal weight completion to the terminal changes. I.e. it could be that below $L$ the feasible subgraph changes because more paths become feasible, but when these paths do not offer a better weight we don't really care. Reversely, it could be that above $U$ certain paths become infeasible, changing the feasible subgraph, but if the shortest weight path is still feasible we don't really care. So we derive stronger bounds, i.e. wider intervals, by setting $U$ to the delay at which the shortest weight completion to terminal becomes infeasible and $L$ to the delay below which a shorter weight completion to terminal becomes feasible.
+In the context of weight minimization, we can further strengthen the equivalence bounds $[L,U)$ by the following observation: for a minimal weight path, we are only interested in cases where the minimal weight completion to the terminal changes. I.e. it could be that below $L$ the feasible subgraph changes because more paths become feasible, but when these paths do not offer a better weight we don't really care. Reversely, it could be that above $U$ certain paths become infeasible, changing the feasible subgraph, but if the shortest weight path is still feasible we don't really care. So we derive stronger bounds, i.e. wider intervals, by setting $U$ to the delay at which the shortest weight completion to terminal becomes infeasible and $L$ to the delay below which a strictly better weight completion to terminal becomes feasible.
+
+For a successor $u$ reached along edge $e_{vu}$, let $[L_u,U_u)$ with completion weight $W_u$ be the interval that the current label falls into at $u$, and let $W_u^{-}$ be the completion weight of the interval directly adjacent below it, i.e. the interval that covers the delays just below $L_u$. $W_u^{-}$ is only known exactly once that adjacent interval has actually been explored by some label; until then it is approximated with a safe, lower-bound estimate $\underline{W}_u^{-}$: since completion weight is non-increasing as delay decreases, any already-known interval at $u$ with a lower delay range gives a valid underestimate of $W_u^{-}$, and if no such interval exists at all yet, the unconstrained shortest weight from $u$ to the terminal (ignoring delay feasibility) is used instead, since it is always a lower bound on any delay-constrained completion weight.
 
 replace the post-recursion interval derivation with:
 
@@ -116,11 +118,13 @@ replace the post-recursion interval derivation with:
 add interval [L,U) with completion weight W to the set of intervals, where:
 
 W = min over all edges(successor completion weight + edge.weight)
-U = (successor U - edge.delay) for successor that yielded min over all edges(successor completion weight + edge.weight)
-L = max over all edges(successor L - edge.delay | (successor - 1).completion weight + edge.weight < W)
+U = (successor U - edge.delay) for the successor that yielded min over all edges(successor completion weight + edge.weight)
+L = max over all edges(successor L - edge.delay | predecessor completion weight + edge.weight < W)
 ```
 
-Intervals in this variant are not static. The lower bound $L$ may initially be inaccurate and is later superseded by a smaller $L$ (while $U$ stays the same). This happens when a successor interval has no predecessor yet — no label with a lower delay has visited that successor — in which case the unconstrained shortest weight to terminal is used as an estimate of the preceding interval's completion weight. This estimate is a lower bound; if it turns out to be too optimistic, the initial $L$ is set too high and is corrected downwards when a later label recomputes the interval with the now-known predecessor.
+where `predecessor completion weight` is $\underline{W}_u^{-}$ as defined above: the completion weight of the interval adjacent below (or its estimate, when not yet known) at the successor $u$ reached by that edge.
+
+Intervals in this variant are not static. The lower bound $L$ may initially be set too high (the interval too narrow) whenever $\underline{W}_u^{-}$ was only an estimate rather than an exact, already-explored value. This happens in two cases: when no label with a lower delay has visited $u$ at all, or when the nearest already-known interval below $L_u$ does not reach up to $L_u$, leaving a gap of unexplored delays in between. In either case $U$ stays the same, but $L$ is later superseded by a smaller $L$ once a label actually visits that gap and the true completion weight becomes known.
 
 A worked out example can be found in the [example](examples/Labeling-DFS.md#Completion%20equivalence) directory.
 
@@ -128,7 +132,7 @@ A worked out example can be found in the [example](examples/Labeling-DFS.md#Comp
 
 The traditional dominance pruning maintains a set of non-dominated labels at each node. New labels that arrive at this node are compared to the existing set for dominance. If dominated by at least one label in the set, the new label is not expanded further. If not dominated by any label in the set, the new label is added to the set and expanded further along outgoing edges.
 
-We propose a stronger dominance by the following observation: if label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ at node $v$ is expanded to successor node $u$ along edge $e$ and is dominated at node $u$ by dominator $(w',d')$, then any label at node $v$ that is dominated by $(w' - w(e_{vu}), d' - d(e_{vu}))$ will be dominated by $(w',d')$ at node $u$. Since domination at node $u$ means: $w(p_{s \rightarrow v}) + w(e_{vu}) \ge w'$ and $d(p_{s \rightarrow v}) + d(e_{vu}) \ge d'$, we can say that $w' - w(e_{vu}) \le w(p_{s \rightarrow v})$ and $d' - d(e_{vu}) \le d(p_{s \rightarrow v})$. So the pair $(w' - w(e_{vu}), d' - d(e_{vu}))$ gives a stronger bound than the original label $(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$.
+We propose a stronger dominance by the following observation: if label $l=(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$ at node $v$ is expanded to successor node $u$ along edge $e$ and is dominated at node $u$ by dominator $(w^{\prime},d^{\prime})$, then any label at node $v$ that is dominated by $(w^{\prime} - w(e_{vu}), d^{\prime} - d(e_{vu}))$ will be dominated by $(w^{\prime},d^{\prime})$ at node $u$. Since domination at node $u$ means: $w(p_{s \rightarrow v}) + w(e_{vu}) \ge w^{\prime}$ and $d(p_{s \rightarrow v}) + d(e_{vu}) \ge d^{\prime}$, we can say that $w^{\prime} - w(e_{vu}) \le w(p_{s \rightarrow v})$ and $d^{\prime} - d(e_{vu}) \le d(p_{s \rightarrow v})$. So the pair $(w^{\prime} - w(e_{vu}), d^{\prime} - d(e_{vu}))$ gives a stronger bound than the original label $(w(p_{s \rightarrow v}),d(p_{s \rightarrow v}))$.
 
 In case of multiple outgoing edges, we need to make sure that future labels will be dominated along all edges. In a DFS ordering, all successors are visited before backtracking. This makes it possible to gather all successor dominators along all edges before constructing a dominator to be added to this node's set for future dominance pruning. To ensure future labels dominated by dominator $(w,d)$ are guaranteed to be dominated along all expansions somewhere in the subgraph rooted at node $v$, the dominator is constructed as the piecewise maximum:
 
@@ -161,7 +165,7 @@ Two special cases are added to accommodate feasibility and weight bound pruning:
 
 Note: we use `+ 1` for the feasibility dominator, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
-We calculate the dominator after all expansions. When multiple edges visit the same successor, a dominator inserted during one edge's recursion may be superseded by a stronger one when the other edge visits the same successor. This is especially important to handle the case when edges visiting the successor dominate each other: $w(e_{vu}) \le w(e'_{vu})\ and\ d(e_{vu}) \le d(e'_{vu})$.
+We calculate the dominator after all expansions. When multiple edges visit the same successor, a dominator inserted during one edge's recursion may be superseded by a stronger one when the other edge visits the same successor. This is especially important to handle the case when edges visiting the successor dominate each other: $w(e_{vu}) \le w(e^{\prime}_{vu})\ and\ d(e_{vu}) \le d(e^{\prime}_{vu})$.
 
 A worked out example can be found in the [example](examples/Labeling-DFS.md#Dominance%20vs.%20backward%20dominance) directory.
 

@@ -4,7 +4,7 @@ Label setting is one of the standard exact methods for the constrained shortest 
 
 For the CSP with a single constraint, a label $l$ is a tuple $(w(p_{s \rightarrow v}), d(p_{s \rightarrow v}))$ associated with a node $v$ where $w(p_{s \rightarrow v})$ is the weight and $d(p_{s \rightarrow v})$ the delay of a partial path $p_{s \rightarrow v}$ from source $s$ to node $v$. In the remainder, a label may also be written as $(w,d,v)$ with the third element $v$ indicating the node the label belongs to.
 
-Label setting starts with label $(0,0)$ at the source $s$ and repeatedly expands the label $l=(w(p_{s \rightarrow v}), d(p_{s \rightarrow v}))$ along outgoing edges of $v$. Expansion of label $l$ along edge $e_{vu}$ from node $v$ to its successor node $u$, generates a new label $l'$ by adding the edge's weight $w(e_{vu})$ and delay $d(e_{vu})$ giving the new label $l'=(w(p_{s \rightarrow v}) + w(e_{vu}), d(p_{s \rightarrow v}) + d(e_{vu}))$ at node $u$.
+Label setting starts with label $(0,0)$ at the source $s$ and repeatedly expands the label $l=(w(p_{s \rightarrow v}), d(p_{s \rightarrow v}))$ along outgoing edges of $v$. Expansion of label $l$ along edge $e_{vu}$ from node $v$ to its successor node $u$, generates a new label $l^{\prime}$ by adding the edge's weight $w(e_{vu})$ and delay $d(e_{vu})$ giving the new label $l^{\prime}=(w(p_{s \rightarrow v}) + w(e_{vu}), d(p_{s \rightarrow v}) + d(e_{vu}))$ at node $u$.
 
 ## Ordering
 
@@ -26,8 +26,8 @@ The standard often used pruning rules include:
 | | $w(p_{s \rightarrow v})+ \underline{w}(p_{v \rightarrow t}) \ge \overline{w}(p_{s \rightarrow t})$ |
 | Lagrangian bound | A lower bound is obtained by combining weight and delay using a Lagrange multiplier $\lambda$: $c_{\lambda} = w + \lambda * d$. A label $l$ cannot lead to a better solution whenever its Lagrangianized cost $c_{\lambda}(p_{s \rightarrow v})$ shifted by the constant $\lambda * D$ plus the minimum possible Lagrangianized cost to terminal $\underline{c}_{\lambda}(p_{v \rightarrow t})$ exceeds the incumbent $\overline{w}(p_{s \rightarrow t})$. Whenever the incumbent improves, the bound tightens. |
 | | $c_{\lambda}(p_{s \rightarrow v}) - \lambda * D + \underline{c}_{\lambda}(p_{v \rightarrow t}) \ge \overline{w}(p_{s \rightarrow t})$ |
-| Dominance | Label $l$ is dominated by label $l′$ at the same node if $l′$ is strictly better or equal on both weight and delay, so any feasible extension from $l$ is also achievable from $l′$ with lower or equal total weight.|
-| | $l' \preceq l \Leftrightarrow w(p'_{s \rightarrow v}) \le w(p_{s \rightarrow v})\ and\ d(p'_{s \rightarrow v}) \le d(p_{s \rightarrow v})$ |
+| Dominance | Label $l$ is dominated by label $l^{\prime}$ at the same node if $l^{\prime}$ is strictly better or equal on both weight and delay, so any feasible extension from $l$ is also achievable from $l^{\prime}$ with lower or equal total weight.|
+| | $l^{\prime} \preceq l \Leftrightarrow w(p^{\prime}_{s \rightarrow v}) \le w(p_{s \rightarrow v})\ and\ d(p^{\prime}_{s \rightarrow v}) \le d(p_{s \rightarrow v})$ |
 
 We propose two novel pruning rules specifically in the context of depth first ordering (DFS).
 
@@ -35,8 +35,8 @@ We propose two novel pruning rules specifically in the context of depth first or
 | ------------- | ----------- |
 | Completion equivalence | Let $[L,U)$ be an interval such that all labels with a delay in this interval $L \leq d(p_{s \rightarrow v}) \lt U$ share the same feasible shortest weight completion to the terminal node $t$. Once such interval is identified, the solution of continuing any label $l$ falling in the interval is already known and does not need to be computed again. |
 | |$d(p_{s \rightarrow v}) \in [L,U)$ |
-| Backward dominance | When a label $l$ at node $v$ is expanded along edge $e$ and dominated at node $u$ by (weight, delay) pair $(w',d')$, then any label dominated by that pair's residual (weight, delay) after subtracting the edge $e$ is guaranteed to be dominated at node u, enabling stronger pruning. |
-| | $(w',d',u) \preceq l_{u} \Rightarrow (w' - w(e_{vu}), d' - d(e_{vu})) \preceq l_{v}$ |
+| Backward dominance | When a label $l$ at node $v$ is expanded along edge $e$ and dominated at node $u$ by (weight, delay) pair $(w^{\prime},d^{\prime})$, then any label dominated by that pair's residual (weight, delay) after subtracting the edge $e$ is guaranteed to be dominated at node u, enabling stronger pruning. |
+| | $(w^{\prime},d^{\prime},u) \preceq l_{u} \Rightarrow (w^{\prime} - w(e_{vu}), d^{\prime} - d(e_{vu})) \preceq l_{v}$ |
 
 [Read more](Labeling-DFS.md) about these new pruning techniques.
 

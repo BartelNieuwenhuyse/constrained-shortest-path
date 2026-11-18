@@ -146,5 +146,5 @@ outperformed on #2 and #18, with #3 a near-tie. These are the loosest
 tightness values in the set (δ ≥ 0.79), and the cases expose the
 missing incumbent-based weight pruning: with a small *absolute*
 optimality gap a good incumbent prunes the feasible space aggressively,
-while `eq_weight` must map the entire feasible space. Adding
+while `dfs_eq_weight` must map the entire feasible space. Adding
 incumbent-driven interval truncation is the obvious next step.
