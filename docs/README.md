@@ -93,7 +93,7 @@ A label is repeatedly expanded along edges. The ordering in which expansion happ
 
 - [depth-first ordering](CSP/Labeling-DFS.md)
 
-The efficiency of label setting further depends on pruning rules. Pruning rules fathom labels early if it can be proven the partial path cannot be completed to an optimal path. [Read more](CSP/Labeling.md) about this repository's research into label setting solution strategies.
+The efficiency of label setting further depends on pruning rules. Pruning rules fathom labels early if it can be proven the partial path cannot be completed to an optimal path.
 
 ### Path ranking
 
@@ -119,13 +119,13 @@ The different solvers are benchmarked on randomly generated graphs and input dat
 
 ## Documentation structure
 
-- `CSP/` — documentation for the constrained shortest path problem
+- [`CSP/`](CSP/) — documentation for the constrained shortest path problem
   - [`Benchmarks.md`](CSP/Benchmarks.md) summarizes results, comparing the different solvers
   - [`Labeling.md`](CSP/Labeling.md) describes label setting
   - [`Labeling-DFS.md`](CSP/Labeling-DFS.md) describes specifically the depth first variants of label setting and our contributions to it
   - [`Lagrange-Dual.md`](CSP/Lagrange-Dual.md) describes solving the dual problem
-  - `examples/` — contains examples demonstrating the algorithmic ideas on example problems
-- `Motivation.md` describes the context of this research and constrained shortest paths on layered acyclic digraphs
+  - [`examples/`](CSP/examples/) — contains examples demonstrating the algorithmic ideas on example problems
+- [`Motivation.md`](Motivation.md) describes the context of this research and constrained shortest paths on layered acyclic digraphs
 
 ## References
 
