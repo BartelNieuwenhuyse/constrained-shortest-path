@@ -10,16 +10,16 @@ Research codebase for developing and benchmarking novel exact algorithms for the
 
 This repository is dedicated to original algorithmic contributions to constrained shortest path optimization. It is not limited to reimplementing existing methods: the goal is to develop, validate, and benchmark new ideas that improve exact solvers.
 
-The starting point is the delay-constrained least-cost problem (DCLC) — a single delay constraint — on layered acyclic multi-digraphs (DAG).  Extension to general graphs and multiple resources (RCSPP) is planned where the techniques permit.
+The starting point is the delay-constrained shortest path problem (DCSP) — a single delay constraint — on layered acyclic multi-digraphs (DAG).  Extension to general graphs and multiple resources (RCSPP) is planned where the techniques permit.
 
 ## Research
 
 Original contributions contained in this repository include:
 
-|Category|Contributions|Status|
-|--------------|---------------------|----------|
-|[DFS label-setting](docs/CSP/Labeling-DFS.md)|Backwards dominance pruning tightening traditional dominance|In progress|
-||Completion equivalence pruning to fathom labels that share the same completion value|In progress|
+| Category | Contributions | Status |
+| -------- | ------------- | ------ |
+| [DFS label-setting](docs/CSP/Labeling-DFS.md) | Backwards dominance pruning tightening traditional dominance | In progress |
+| | Completion equivalence pruning to fathom labels that share the same completion value | In progress |
 
 Formal problem definitions and detailed algorithm descriptions live in `docs/`. The implementation of each novel contribution lives in `src/`.
 
@@ -41,7 +41,7 @@ Actively under development, and best understood as a research prototype rather t
 
 ### Build
 
-Use the solution in benchmarks/ as the entry point:
+Use the solution in `benchmarks/` as the entry point:
 
 ```bash
 dotnet build benchmarks/Benchmarks.slnx --configuration Benchmark
@@ -49,7 +49,7 @@ dotnet build benchmarks/Benchmarks.slnx --configuration Benchmark
 
 ### Run a benchmark
 
-Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to a file. Parameters are passed in through a json settings file.
+Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to a file. Parameters are passed in through a json settings file. Read about the parameters and output in the benchmark's [README](benchmarks/README.md).
 
 ```bash
 dotnet run --project benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG -- runsettings.json

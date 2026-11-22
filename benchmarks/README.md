@@ -1,12 +1,12 @@
 # Benchmark runner for layered-DAG DCSP
 
-This directory contains the benchmarking harness for the delay-constrained shortest path solvers implemented for layered DAGs. The goal of the runner is to generate many random instances, solve them with several algorithm variants, and record timings and quality metrics in a reproducible way.
+This directory contains the benchmarking application for the delay-constrained shortest path solvers implemented for layered DAGs. The goal of the runner is to generate many random instances, solve them with several algorithm variants, and record timings and algorithm metrics in a reproducible way.
 
-This is a measurement harness, not the reference algorithm implementation. The actual solver logic lives in the project under the CSP sources; this tool is responsible for parameter generation, execution, and result collection.
+This documentation describes the measurement harness, not the reference algorithm implementation also living in this folder. The novel solver implementation lives in the [src/](../src/) directory. These reference and novel algorithms are described in the [docs/](../docs/) directory. Here the problem generation, benchmark and instrumentation execution, and result collection is desribed.
 
 ## What the runner does
 
-For each benchmark run, the harness:
+For each benchmark run, the benchmark application:
 
 - generates a random layered DAG
 - assigns random edge weights and delays
@@ -15,7 +15,7 @@ For each benchmark run, the harness:
 - runs each configured solver on the same generated instance
 - compares the returned feasibility and optimal weight across solvers
 - writes two semicolon-delimited CSVs: one with the problem data and one with the solver results
-- stores run metadata and run parameters in a per-run directory under the configured output path as context of the build and environment on which the run took place
+- stores run metadata and run parameters in a per-run directory under the configured output path
 
 The benchmark is designed for empirical evaluation and performance comparison rather than formal proof.
 
@@ -98,13 +98,7 @@ Key fields:
 - `minMillisecondsToElapse`: minimum elapsed measurement before the runner stops repeating a solver.
 - `minTimesToRun`: minimum repeat count before the runner stops repeating a solver.
 
-The available solver names are:
-
-- `dfs_dual`
-- `dfs_dom`
-- `dfs_back_dom`
-- `dfs_eq`
-- `dfs_eq_weight`
+The available solver names can be found in the [benchmarks](../docs/CSP/Benchmarks.md) documentation page.
 
 ## Output
 
@@ -135,7 +129,7 @@ When `INSTRUMENTATION` is enabled, additional columns are appended for:
 
 - run ID
 - UTC timestamp
-- Git revision (`SourceRevisionId`)
+- Git revision (`CommitSha`)
 - build configuration
 - target framework
 - runtime and OS information
@@ -149,10 +143,3 @@ The benchmark is not a formal unit-test suite. It relies on randomized validatio
 - invariant checks: in `TEST` builds, the code asserts structural properties of the algorithms during execution
 
 This is intended to catch logic errors and inconsistent semantics during development; it is an empirical validation strategy rather than a mathematical proof.
-
-## Notes
-
-- Use `Debug` for correctness-oriented runs and local validation.
-- Use `Benchmark` for larger benchmark sweeps and performance measurement.
-- For reproducibility, keep the seed, generator settings, and metadata together with each output directory.
-- The solver theory and algorithmic rationale belong in the repository docs, while this file documents the harness itself.

@@ -38,7 +38,7 @@ This documentation describes the algorithms in this repository that solve the La
 
 ### LARAC
 
-This dual iteration algorithm was introduced by [Handler and Zang, 1980] for DCLC. It later became widely known under the name LARAC, after [Jüttner et al., 2001] independently rediscovered it. It is the default standard algorithm to solve the dual problem in the delay-constraint shortest path literature. It's a specialization of kelley's cutting plane method.
+This dual iteration algorithm was introduced by [Handler and Zang, 1980] for the delay-constrained shortest path problem. It later became widely known under the name LARAC, after [Jüttner et al., 2001] independently rediscovered it. It is the default standard algorithm to solve the dual problem in the delay-constraint shortest path literature. It's a specialization of kelley's cutting plane method.
 
 #### Base
 
