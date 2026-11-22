@@ -110,7 +110,7 @@ We are unaware of prior publications describing these specific contributions.
 
 We propose two new pruning rules that are used in label setting with a depth first exploration:
 
-- **Backwards dominance pruning**: computed after successor exploration and before backtracking. Achieves stronger pruning by leveraging dominating labels at successor nodes rather than the incoming label.
+- **Backward dominance pruning**: computed after successor exploration and before backtracking. Achieves stronger pruning by leveraging dominating labels at successor nodes rather than the incoming label.
 - **Completion equivalence pruning**: partitions the delay space at each node into intervals sharing the same optimal completion weight. Labels falling within the same interval can be fathomed.
 
 ## Benchmarking

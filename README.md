@@ -18,7 +18,7 @@ Original contributions contained in this repository include:
 
 | Category | Contributions | Status |
 | -------- | ------------- | ------ |
-| [DFS label-setting](docs/CSP/Labeling-DFS.md) | Backwards dominance pruning tightening traditional dominance | In progress |
+| [DFS label-setting](docs/CSP/Labeling-DFS.md) | Backward dominance pruning tightening traditional dominance | In progress |
 | | Completion equivalence pruning to fathom labels that share the same completion value | In progress |
 
 Formal problem definitions and detailed algorithm descriptions live in `docs/`. The implementation of each novel contribution lives in `src/`.
