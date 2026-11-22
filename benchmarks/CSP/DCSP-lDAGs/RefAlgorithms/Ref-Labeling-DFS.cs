@@ -408,6 +408,12 @@ public sealed class LabelingDFSSolver : BaseSolver
                         weight = label.weight + weight[node.index_in_graph][edge.index_in_node_in]
                     }, node_labels, least_delay_to_terminal, shortest_weight_to_terminal, path, token);
             }
+#if TEST
+            else if (verbose)
+            {
+                Console.WriteLine($"Label ({label.weight + weight[node.index_in_graph][edge.index_in_node_in]},{label.delay + delay[node.index_in_graph][edge.index_in_node_in]}) not reaching node {node_bottom.index_in_graph} pruned by feasibility/incumbent");
+            }
+#endif
         }
 #if TEST
         if (verbose)

@@ -25,7 +25,9 @@ Current focus is on one constraint (DCLC) on layered acyclic multi-digraphs (DAG
 
 Where applicable, the code exploits the layered structure for better performance, smaller memory or simplicity. Unless specified, it is however not required for correctness of the algorithms. All algorithmic ideas extend to general DAGs when layer-by-layer traversal is replaced by topological ordering.
 
-*Example with 5 layers: layer 0 (source s), layer 1 (1,2), layer 2 (3,4), layer 3 (5) and layer 4 (terminal t). Edges are annotated with (weight,delay)*
+### Example
+
+Example with 5 layers: layer 0 (source s), layer 1 (1,2), layer 2 (3,4), layer 3 (5) and layer 4 (terminal t). Edges are annotated with (weight,delay).
 
 ```mermaid
 flowchart LR
@@ -127,6 +129,6 @@ The different solvers are benchmarked on randomly generated graphs and input dat
 
 ## References
 
-Bergman D., Bodur M., Cardonha C., Cire A.A. (2021). Network Models for Multiobjective Discrete Optimization. INFORMS Journal on Computing Vol. 34, No. 2 https://doi.org/10.1287/ijoc.2021.1066
+Bergman D., Bodur M., Cardonha C., Cire A.A. (2021). Network Models for Multiobjective Discrete Optimization. INFORMS Journal on Computing Vol. 34, No. 2. [doi: 10.1287/ijoc.2021.1066](https://doi.org/10.1287/ijoc.2021.1066)
 
-Hooker, J.N. (2013). Decision Diagrams and Dynamic Programming. In: Gomes, C., Sellmann, M. (eds) Integration of AI and OR Techniques in Constraint Programming for Combinatorial Optimization Problems. CPAIOR 2013. Lecture Notes in Computer Science, vol 7874. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-38171-3_7
+Hooker, J.N. (2013). Decision Diagrams and Dynamic Programming. In: Gomes, C., Sellmann, M. (eds) Integration of AI and OR Techniques in Constraint Programming for Combinatorial Optimization Problems. CPAIOR 2013. Lecture Notes in Computer Science, vol 7874. Springer, Berlin, Heidelberg. [doi: 10.1007/978-3-642-38171-3_7](https://doi.org/10.1007/978-3-642-38171-3_7)

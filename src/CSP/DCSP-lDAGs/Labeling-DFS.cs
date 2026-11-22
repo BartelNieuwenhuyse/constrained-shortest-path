@@ -586,6 +586,12 @@ public sealed class LabelingDFSSolver : BaseSolver
                 // weight pruning
                 if (label.weight + weight[node.index_in_graph][edge.index_in_node_in] + shortest_weight_to_terminal[node_bottom.index_in_graph] >= _upper_bound_weight)
                 {
+#if TEST
+                    if (verbose)
+                    {
+                        Console.WriteLine($"Label ({label.weight + weight[node.index_in_graph][edge.index_in_node_in]},{label.delay + delay[node.index_in_graph][edge.index_in_node_in]}) not reaching node {node_bottom.index_in_graph} pruned by incumbent");
+                    }
+#endif
                     // act as if it is dominated by (_upper_bound_weight- shortest_weight_to_terminal, int.MinValue)
                     if (dominator.weight < _upper_bound_weight - weight[node.index_in_graph][edge.index_in_node_in] - shortest_weight_to_terminal[edge.index_in_graph_of_node_out])
                     {

@@ -1,7 +1,4 @@
-﻿
-namespace DelayConstrainedShortestPath.References;
-
-using DataStructures;
+﻿namespace DelayConstrainedShortestPath.References;
 
 public sealed class DualCuttingPlaneSolver : BaseDualSolver
 {

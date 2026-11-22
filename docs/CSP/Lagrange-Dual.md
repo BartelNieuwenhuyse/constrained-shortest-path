@@ -96,16 +96,16 @@ We propose a slightly different algorithmic approach, acknowledging that only on
 18    weight_path = tie_path
 ```
 
-Tie breaking can decrease the number of iterations needed to solve the dual by more closely tracking the hull. It can also improve the incumbent: at the optimal lambda, the non-tie-breaking variant may only find an infeasible path, while with tie-breaking a feasible path is always found with the optimal lambda (which is better than any feasible path found for larger lambda during the iteration). 
+Tie breaking can decrease the number of iterations needed to solve the dual by more closely tracking the hull. It can also improve the incumbent: at the optimal lambda, the non-tie-breaking variant may only find an infeasible path, while with tie-breaking a feasible path is always found with the optimal lambda (which is better than any feasible path found for larger lambda during the iteration).
 
 A worked out example can be found in [example-2](examples/Example-2-Dual.md).
 
 ## References
 
-Handler, G.Y. and Zang, I. (1980), A dual algorithm for the constrained shortest path problem. Networks, 10: 293-309. https://doi.org/10.1002/net.3230100403
+Handler, G.Y. and Zang, I. (1980), A dual algorithm for the constrained shortest path problem. Networks, 10: 293-309. [doi: 10.1002/net.3230100403](https://doi.org/10.1002/net.3230100403)
 
-Juttner A., Szviatovski B., Mecs I. and Rajko Z. (2001). Lagrange relaxation based method for the QoS routing problem. Proceedings IEEE INFOCOM 2001. Conference on Computer Communications, pp. 859-868 vol.2. https://doi.org/10.1109/INFCOM.2001.916277
+Juttner A., Szviatovski B., Mecs I. and Rajko Z. (2001). Lagrange relaxation based method for the QoS routing problem. Proceedings IEEE INFOCOM 2001. Conference on Computer Communications, pp. 859-868 vol.2. [doi: 10.1109/INFCOM.2001.916277](https://doi.org/10.1109/INFCOM.2001.916277)
 
-Kou C., Hu D., Yuan J. and Ai W. (2020). Bisection and Exact Algorithms Based on the Lagrangian Dual for a Single-Constrained Shortest Path Problem. In: IEEE/ACM Transactions on Networking, vol. 28, no. 1, pp. 224-233. https://doi.org/10.1109/TNET.2019.2955451
+Kou C., Hu D., Yuan J. and Ai W. (2020). Bisection and Exact Algorithms Based on the Lagrangian Dual for a Single-Constrained Shortest Path Problem. In: IEEE/ACM Transactions on Networking, vol. 28, no. 1, pp. 224-233. [doi: 10.1109/TNET.2019.2955451](https://doi.org/10.1109/TNET.2019.2955451)
 
-Ziegelmann, M. (2007). Constrained shortest paths and related problems. https://doi.org/10.22028/D291-23753
+Ziegelmann, M. (2007). Constrained shortest paths and related problems. Dissertation. [doi: 10.22028/D291-23753](https://doi.org/10.22028/D291-23753)

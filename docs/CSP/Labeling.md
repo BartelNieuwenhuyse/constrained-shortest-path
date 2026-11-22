@@ -26,7 +26,7 @@ The standard often used pruning rules include:
 | | $w(p_{s \rightarrow v})+ \underline{w}(p_{v \rightarrow t}) \ge \overline{w}(p_{s \rightarrow t})$ |
 | Lagrangian bound | A lower bound is obtained by combining weight and delay using a Lagrange multiplier $\lambda$: $c_{\lambda} = w + \lambda * d$. A label $l$ cannot lead to a better solution whenever its Lagrangian cost $c_{\lambda}(p_{s \rightarrow v})$ shifted by the constant $\lambda * D$ plus the minimum possible Lagrangian cost to terminal $\underline{c}_{\lambda}(p_{v \rightarrow t})$ exceeds the incumbent $\overline{w}(p_{s \rightarrow t})$. Whenever the incumbent improves, the bound tightens. |
 | | $c_{\lambda}(p_{s \rightarrow v}) - \lambda * D + \underline{c}_{\lambda}(p_{v \rightarrow t}) \ge \overline{w}(p_{s \rightarrow t})$ |
-| Dominance | Label $l$ is dominated by label $l^{\prime}$ at the same node if $l^{\prime}$ is strictly better or equal on both weight and delay, so any feasible extension from $l$ is also achievable from $l^{\prime}$ with lower or equal total weight.|
+| Dominance | Label $l$ is dominated by label $l^{\prime}$ at the same node if $l^{\prime}$ is strictly better or equal on both weight and delay, so any feasible extension from $l$ is also achievable from $l^{\prime}$ with lower or equal total weight. |
 | | $l^{\prime} \preceq l \Leftrightarrow w(p^{\prime}_{s \rightarrow v}) \le w(p_{s \rightarrow v})\ and\ d(p^{\prime}_{s \rightarrow v}) \le d(p_{s \rightarrow v})$ |
 
 We propose two novel pruning rules specifically in the context of depth first ordering (DFS).
@@ -34,7 +34,7 @@ We propose two novel pruning rules specifically in the context of depth first or
 | Pruning (DFS) | Description |
 | ------------- | ----------- |
 | Completion equivalence | Let $[L,U)$ be an interval such that all labels with a delay in this interval $L \leq d(p_{s \rightarrow v}) \lt U$ share the same feasible shortest weight completion to the terminal node $t$. Once such interval is identified, the solution of continuing any label $l$ falling in the interval is already known and does not need to be computed again. |
-| |$d(p_{s \rightarrow v}) \in [L,U)$ |
+| | $d(p_{s \rightarrow v}) \in [L,U)$ |
 | Backward dominance | When a label $l$ at node $v$ is expanded along edge $e$ and dominated at node $u$ by (weight, delay) pair $(w^{\prime},d^{\prime})$, then any label dominated by that pair's residual (weight, delay) after subtracting the edge $e$ is guaranteed to be dominated at node u, enabling stronger pruning. |
 | | $(w^{\prime},d^{\prime},u) \preceq l_{u} \Rightarrow (w^{\prime} - w(e_{vu}), d^{\prime} - d(e_{vu})) \preceq l_{v}$ |
 
@@ -57,16 +57,16 @@ initialization:
 
 ## References
 
-Ahmadi, S., Raith, A., Tack, G. & Jalili, M., 2025, Proceedings of the AAAI Conference on Artificial Intelligence. Walsh, T., Shah, J. & Kolter, Z. (eds.). Washington DC USA: Association for the Advancement of Artificial Intelligence (AAAI), p. 26878-26885 8 p. (Proceedings of the AAAI Conference on Artificial Intelligence; vol. 39, no. 25).
+Ahmadi, S., Raith, A., Tack, G., and Jalili, M. (2025). Resource Constrained Pathfinding with Enhanced Bidirectional A* Search. Proceedings of the AAAI Conference on Artificial Intelligence, 39(25), 26878–26885. [doi: 10.1609/aaai.v39i25.34892](https://doi.org/10.1609/aaai.v39i25.34892)
 
-Aneja, Y., Aggarwal, V., and Nair, K., (1983), “Shortest Chain Subject to Side Conditions,” Networks, 13, pp. 295–302.
+Aneja, Y., Aggarwal, V., and Nair, K. (1983). Shortest Chain Subject to Side Conditions. Networks, 13, pp. 295–302. [doi: 10.1002/net.3230130212](https://doi.org/10.1002/net.3230130212)
 
-Carlyle, W.M., Royset, J.O. and Kevin Wood, R. (2008), Lagrangian relaxation and enumeration for solving constrained shortest-path problems†. Networks, 52: 256-270. https://doi.org/10.1002/net.20247
+Carlyle, W.M., Royset, J.O. and Kevin Wood, R. (2008). Lagrangian relaxation and enumeration for solving constrained shortest-path problems†. Networks, 52: 256-270. [doi: 10.1002/net.20247](https://doi.org/10.1002/net.20247)
 
-Desrochers, M., & Soumis, F. (1988). A Generalized Permanent Labelling Algorithm For The Shortest Path Problem With Time Windows. INFOR: Information Systems and Operational Research, 26(3), 191–212. https://doi.org/10.1080/03155986.1988.11732063
+Desrochers, M. and Soumis, F. (1988). A Generalized Permanent Labelling Algorithm For The Shortest Path Problem With Time Windows. INFOR: Information Systems and Operational Research, 26(3), 191–212. [doi: 10.1080/03155986.1988.11732063](https://doi.org/10.1080/03155986.1988.11732063)
 
-Dumitrescu, I. and Boland, N. (2003), Improved preprocessing, labeling and scaling algorithms for the Weight-Constrained Shortest Path Problem. Networks, 42: 135-153. https://doi.org/10.1002/net.10090
+Dumitrescu, I. and Boland, N. (2003). Improved preprocessing, labeling and scaling algorithms for the Weight-Constrained Shortest Path Problem. Networks, 42: 135-153. [doi: 10.1002/net.10090](https://doi.org/10.1002/net.10090)
 
-Joksch, H., (1966), “The Shortest Route Problem with Constraints,” Journal of Mathematical Analysis and Application, 14, pp. 191–197.
+Joksch, H., (1966). The Shortest Route Problem with Constraints. Journal of Mathematical Analysis and Application, 14, pp. 191–197. [doi: 10.1016/0022-247X(66)90020-5](https://doi.org/10.1016/0022-247X(66)90020-5)
 
-Lozano L., Medaglia A. L. (2013). On an exact method for the constrained shortest path problem Computers & Operations Research, Volume 40, Issue 1, Pages 378-384, https://doi.org/10.1016/j.cor.2012.07.008.
+Lozano L., Medaglia A. L. (2013). On an exact method for the constrained shortest path problem Computers & Operations Research, Volume 40, Issue 1, Pages 378-384. [doi: 10.1016/j.cor.2012.07.008](https://doi.org/10.1016/j.cor.2012.07.008)

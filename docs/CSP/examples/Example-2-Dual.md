@@ -37,7 +37,7 @@ flowchart LR
   N5 -->|2,5| T
 ```
 
-The chart below plots all 8 paths in the ($\lambda$, $c_{\lambda}$) space. 
+The chart below plots all 8 paths in the ($\lambda$, $c_{\lambda}$) space.
 
 ```mermaid
 xychart

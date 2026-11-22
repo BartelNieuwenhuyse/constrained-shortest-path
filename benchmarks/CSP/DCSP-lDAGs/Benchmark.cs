@@ -28,6 +28,7 @@ internal sealed class RunParameters
 #else
         500;
 #endif
+    public int OutDegreeMax { get; set; } = 3;
     public string OutputPath { get; set; } = "./";
     public int CancellationSeconds { get; set; } = 600;
     public int MinMillisecondsToElapse { get; set; } = 1000;
@@ -75,8 +76,8 @@ internal class Benchmark
             {
                 // Generate a random layered DAG
                 int vars = rand.Next(parameters.VarsMin, parameters.VarsMax + 1);
-                var graphData = generator.GenerateLayeredDAG(vars + 1, vars, rand.Next(3, 2 * vars + 1));
-
+                var graphData = generator.GenerateLayeredDAG(vars + 1, vars, rand.Next(3, 2 * vars + 1), parameters.OutDegreeMax);
+                
                 Graph DAG = GraphBuilder.Build(graphData);
 
                 // Generate random weights and delays for the edges of the DAG
@@ -88,7 +89,7 @@ internal class Benchmark
                     correlation: weight_delay_correlation / 100.0,
                     out pow_edge_weight, out pow_edge_delay
                     );
-
+                
                 // Calculate a delay threshold such that in most cases at least the shortest weight path is infeasible and at least one path is feasible.
                 // This ensures that the problem is non-trivial and requires the algorithm to find a solution within the given constraint.
                 // But also make it possible that the shortest weight path is feasible or that no path is feasible, to test the algorithm's ability to handle edge cases.

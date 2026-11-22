@@ -59,7 +59,7 @@ if label l within Lagrangian bound:
 
 Dynamic programming is a long established technique to solve the constrained shortest path problem [Joksch, 1966]. Label setting is sometimes still called dynamic programming.
 
-The connection between dynamic programming and decison diagram (DD) compilation is also well known. See [Bergman et al. 2016] for a comprehensive overview. A decision diagram for a knapsack constraint can be build by running dynamic programming on the state-space as if you would solve the knapsack problem. The acyclic state-transition graph of the dynamic programming table is a binary decision diagram: it encodes all feasible solutions as paths on the graph. However, it is not a minimal decision diagram. An additional bottom-up minimization of the graph is required to detect and merge isomorphic subgraphs. [Behle, 2007] proposed an output-sensitive decision diagram compilation which constructs a minimized decision diagram in one depth first traversal.
+The connection between dynamic programming and decison diagram (DD) compilation is also well known. See [Bergman et al. 2016] for a comprehensive overview. A decision diagram for a knapsack constraint can be build by running dynamic programming on the state-space as if you would solve the knapsack problem. The acyclic state-transition graph of the dynamic programming table is a binary decision diagram: it encodes all feasible solutions as paths on the graph. However, it is not a minimal decision diagram. An additional bottom-up minimization of the graph is required to detect and merge isomorphic subgraphs. [Behle, 2007] proposed an output-sensitive decision diagram compilation for a linear constraint $a^{T} \cdot x \le b$ which constructs a minimized decision diagram in one depth first traversal. [Tjandraatmadja, 2018] generalized this to other types of real valued functions $f(x) \le b$.
 
 Define the label transition graph as the graph emerging from applying label setting to the constrained shortest path problem. Each label that is not pruned is a node and the label expansions define the edges of the graph. This label transition graph encodes the subspace of efficient paths on the original graph. As with decision diagrams, the label transition graph is not minimal. Isomorphic subgraphs exist, in other words: more than one label has explored the same state-space. This hints at an opportunity to reduce the amount of label expansions.
 
@@ -185,23 +185,22 @@ A worked out example can be found in [example-1](examples/Example-1-DFS.md#Domin
 
 ## References
 
-Behle M. (2007). On threshold BDDs and the optimal variable ordering problem. In: Dress, A., Xu, Y., Zhu, B. (eds) Combinatorial Optimization and Applications. COCOA 2007. Lecture Notes in Computer Science, vol 4616. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-540-73556-4_15
+Behle M. (2007). On threshold BDDs and the optimal variable ordering problem. In: Dress, A., Xu, Y., Zhu, B. (eds) Combinatorial Optimization and Applications. COCOA 2007. Lecture Notes in Computer Science, vol 4616. Springer, Berlin, Heidelberg. [doi: 10.1007/978-3-540-73556-4_15](https://doi.org/10.1007/978-3-540-73556-4_15)
 
-Bergman D., Cire A.A., Van Hoeve W.J., & Hooker J.N. (2016). Decision diagrams for optimization (Vol. 1). New York, NY: Springer International Publishing. https://doi.org/10.1007/978-3-319-42849-9
+Bergman D., Cire A.A., Van Hoeve W.J., & Hooker J.N. (2016). Decision diagrams for optimization (Vol. 1). New York, NY: Springer International Publishing. [doi: 10.1007/978-3-319-42849-9](https://doi.org/10.1007/978-3-319-42849-9)
 
-Byers T.H. and Waterman M.S. (1984). Determining all optimal
-and near-optimal solutions when solving shortest path prob-
-lems by dynamic programming, Operat Res 32 (1984),
-1381–1384. https://doi.org/10.1287/opre.32.6.1381
+Byers T.H. and Waterman M.S. (1984). Determining all optimal and near-optimal solutions when solving shortest path problems by dynamic programming, Operat Res 32 (1984), 1381–1384. [doi: 10.1287/opre.32.6.1381](https://doi.org/10.1287/opre.32.6.1381)
 
-Cabrera N., Medaglia A.L., Lozano L., Duque D. (2020). An exact bidirectional pulse algorithm for the constrained shortest path. https://doi.org/10.1002/net.21960
+Cabrera N., Medaglia A.L., Lozano L., Duque D. (2020). An exact bidirectional pulse algorithm for the constrained shortest path. [doi: 10.1002/net.21960](https://doi.org/10.1002/net.21960)
 
-Carlyle M.W., Royset J.O. and Wood K.R. (2008). Lagrangian relaxation and enumeration for solving constrained shortest-path problems. Networks, 52: 256-270. https://doi.org/10.1002/net.20247
+Carlyle M.W., Royset J.O. and Wood K.R. (2008). Lagrangian relaxation and enumeration for solving constrained shortest-path problems. Networks, 52: 256-270. [doi: 10.1002/net.20247](https://doi.org/10.1002/net.20247)
 
-Carlyle M.W. and Wood K.R. (2005). Near-shortest and K-shortest simple paths. Networks, 46: 98-109. https://doi.org/10.1002/net.20077
+Carlyle M.W. and Wood K.R. (2005). Near-shortest and K-shortest simple paths. Networks, 46: 98-109. [doi: 10.1002/net.20077](https://doi.org/10.1002/net.20077)
 
-Hooker J.N. (2013). Decision Diagrams and Dynamic Programming. In: Gomes, C., Sellmann, M. (eds) Integration of AI and OR Techniques in Constraint Programming for Combinatorial Optimization Problems. CPAIOR 2013. Lecture Notes in Computer Science, vol 7874. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-38171-3_7
+Hooker J.N. (2013). Decision Diagrams and Dynamic Programming. In: Gomes, C., Sellmann, M. (eds) Integration of AI and OR Techniques in Constraint Programming for Combinatorial Optimization Problems. CPAIOR 2013. Lecture Notes in Computer Science, vol 7874. Springer, Berlin, Heidelberg. [doi: 10.1007/978-3-642-38171-3_7](https://doi.org/10.1007/978-3-642-38171-3_7)
 
-Joksch H. (1966). The Shortest Route Problem with Constraints. Journal of Mathematical Analysis and Application, 14, pp. 191–197. https://doi.org/10.1016/0022-247X(66)90020-5
+Joksch H. (1966). The Shortest Route Problem with Constraints. Journal of Mathematical Analysis and Application, 14, pp. 191–197. [doi: 10.1016/0022-247X(66)90020-5](https://doi.org/10.1016/0022-247X(66)90020-5)
 
-Lozano L., Medaglia A. L. (2013). On an exact method for the constrained shortest path problem Computers & Operations Research, Volume 40, Issue 1, Pages 378-384, https://doi.org/10.1016/j.cor.2012.07.008.
+Lozano L., Medaglia A. L. (2013). On an exact method for the constrained shortest path problem Computers & Operations Research, Volume 40, Issue 1, Pages 378-384. [doi: 10.1016/j.cor.2012.07.008](https://doi.org/10.1016/j.cor.2012.07.008)
+
+Tjandraatmadja, C. (2018). Decision Diagram Relaxations for Integer Programming. Carnegie Mellon University. Thesis. [doi: 10.1184/R1/6715661](https://doi.org/10.1184/R1/6715661)

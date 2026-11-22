@@ -90,8 +90,9 @@ Key fields:
 - `seed`: random seed used for reproducible generation. If omitted or set to null, a random seed is chosen.
 - `maxRuns`: maximum number of graph instances to generate; default is `int.MaxValue` when not specified.
 - `solvers`: list of solver names to benchmark.
-- `varsMin`: minimum graph size for generated instances.
-- `varsMax`: maximum graph size for generated instances.
+- `varsMin`: minimum graph height for generated instances.
+- `varsMax`: maximum graph height for generated instances.
+- `outDegreeMax`: maximum number of edges out of any node in the generated graph instances (minimal = 1).
 - `outputPath`: directory where the CSV output and run metadata are written.
 - `cancellationSeconds`: timeout for each solver invocation.
 - `minMillisecondsToElapse`: minimum elapsed measurement before the runner stops repeating a solver.
