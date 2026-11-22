@@ -1,4 +1,4 @@
-# Example
+# Example 1
 
 We'll use the following example in which edges are annotated with $(weight,delay)$ pairs and the delay constraint limit we use is $D = 23$:
 
@@ -15,7 +15,7 @@ flowchart LR
   N3((3))
 
   %% Terminal
-  T((T))
+  T((t))
 
   %% Edges
   S -->|1,9| N1
@@ -184,12 +184,12 @@ If we redraw the label transition graph with nodes and edge weights from the ori
 ```mermaid
 flowchart LR
   %% Nodes and their intervals
-  S1((S))
+  S1((s))
   N1_1((1))
   N1_2((1))
   N2_1((2))
   N3_1((3))
-  T1((T))
+  T1((t))
 
   %% Label transitions
   S1 -->|1| N1_1

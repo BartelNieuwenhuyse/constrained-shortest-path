@@ -132,7 +132,7 @@ where `successor L>=W` is $`L_u^{\ge W}`$ as defined above: the lower bound of t
 
 Intervals in this variant are not static. The lower bound $L$ may initially be set too high (the interval too narrow) whenever $`L_u^{\ge W}`$ was only an upper-bound estimate $`\overline{U}_{u}^{\lt W}`$ rather than the exact $`U_u^{\lt W}`$. This happens in two cases: when no label with a lower delay has visited $u$ at all, or when the walk runs out of already-known intervals before reaching a failing interval. In either case $U$ stays the same, but $L$ is later superseded by a smaller $L$ once a label actually visits that gap and the true completion weight becomes known.
 
-A worked out example can be found in the [example](examples/Labeling-DFS.md#Completion%20equivalence) directory.
+A worked out example can be found in [example-1](examples/Example-1-DFS.md#Completion%20equivalence).
 
 ## Backward dominance pruning
 
@@ -173,7 +173,7 @@ Note: we use `+ 1` for the feasibility dominator, which is correct for integer d
 
 We calculate the dominator after all expansions. When multiple edges visit the same successor, a dominator inserted during one edge's recursion may be superseded by a stronger one when the other edge visits the same successor. This is especially important to handle the case when edges visiting the successor dominate each other: $w(e_{vu}) \le w(e^{\prime}_{vu})\ and\ d(e_{vu}) \le d(e^{\prime}_{vu})$.
 
-A worked out example can be found in the [example](examples/Labeling-DFS.md#Dominance%20vs.%20backward%20dominance) directory.
+A worked out example can be found in [example-1](examples/Example-1-DFS.md#Dominance%20vs.%20backward%20dominance).
 
 ## Future work
 
@@ -187,7 +187,7 @@ A worked out example can be found in the [example](examples/Labeling-DFS.md#Domi
 
 Behle M. (2007). On threshold BDDs and the optimal variable ordering problem. In: Dress, A., Xu, Y., Zhu, B. (eds) Combinatorial Optimization and Applications. COCOA 2007. Lecture Notes in Computer Science, vol 4616. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-540-73556-4_15
 
-Bergman, D., Cire, A.A., Van Hoeve, W.J., & Hooker, J.N. (2016). Decision diagrams for optimization (Vol. 1). New York, NY: Springer International Publishing. https://doi.org/10.1007/978-3-319-42849-9
+Bergman D., Cire A.A., Van Hoeve W.J., & Hooker J.N. (2016). Decision diagrams for optimization (Vol. 1). New York, NY: Springer International Publishing. https://doi.org/10.1007/978-3-319-42849-9
 
 Byers T.H. and Waterman M.S. (1984). Determining all optimal
 and near-optimal solutions when solving shortest path prob-
@@ -196,9 +196,9 @@ lems by dynamic programming, Operat Res 32 (1984),
 
 Cabrera N., Medaglia A.L., Lozano L., Duque D. (2020). An exact bidirectional pulse algorithm for the constrained shortest path. https://doi.org/10.1002/net.21960
 
-Carlyle M.W., Royset J.O. and Wood K.R. (2008), Lagrangian relaxation and enumeration for solving constrained shortest-path problems†. Networks, 52: 256-270. https://doi.org/10.1002/net.20247
+Carlyle M.W., Royset J.O. and Wood K.R. (2008). Lagrangian relaxation and enumeration for solving constrained shortest-path problems. Networks, 52: 256-270. https://doi.org/10.1002/net.20247
 
-Carlyle M.W. and Wood K.R. (2005), Near-shortest and K-shortest simple paths. Networks, 46: 98-109. https://doi.org/10.1002/net.20077
+Carlyle M.W. and Wood K.R. (2005). Near-shortest and K-shortest simple paths. Networks, 46: 98-109. https://doi.org/10.1002/net.20077
 
 Hooker J.N. (2013). Decision Diagrams and Dynamic Programming. In: Gomes, C., Sellmann, M. (eds) Integration of AI and OR Techniques in Constraint Programming for Combinatorial Optimization Problems. CPAIOR 2013. Lecture Notes in Computer Science, vol 7874. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-38171-3_7
 

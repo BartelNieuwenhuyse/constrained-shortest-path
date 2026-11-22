@@ -10,8 +10,8 @@ Solvers that solve the dual problem are described in [Lagrange-Dual](Lagrange-Du
 
 | Solver name | Variant | Code entry point |
 | ----------- | ------- | ---------------- |
-| kelley | Cutting plane | run_kelley |
-| kelley_pd | Cutting plane | run_kelley_pd |
+| kelley | LARAC | run_kelley |
+| kelley_pd | LARAC with tie-breaking | run_kelley_pd |
 
 ### Depth first label setting
 
