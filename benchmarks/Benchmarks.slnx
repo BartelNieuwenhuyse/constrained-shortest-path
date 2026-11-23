@@ -1,0 +1,15 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Benchmark" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/Benchmarks/">
+    <Project Path="CSP/DCSP-lDAGs/DCSP-lDAG.csproj" />
+  </Folder>
+  <Folder Name="/Libs/">
+    <Project Path="../src/CSP/DCSP-lDAGs/DelayConstrainedShortestPath.csproj" />
+    <Project Path="../src/DataStructures/DataStructures.csproj" />
+    <Project Path="Input/InputGenerator.csproj" />
+  </Folder>
+</Solution>

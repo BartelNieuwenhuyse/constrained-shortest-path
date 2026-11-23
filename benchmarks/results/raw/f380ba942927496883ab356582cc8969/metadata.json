@@ -1,0 +1,12 @@
+{
+  "RunId": "f380ba942927496883ab356582cc8969",
+  "UtcTimestamp": "2026-11-14T11:27:03.0075923+00:00",
+  "CommitSha": "8937fb7a8bf8bc1fe5fa8bdeaf27b90d25e093b5",
+  "BuildConfiguration": "Benchmark",
+  "TargetFramework": "net10.0",
+  "Runtime": ".NET 10.0.15",
+  "OsDescription": "Ubuntu 26.04.1 LTS",
+  "ProcessArchitecture": "X64",
+  "CpuLogicalCores": 8,
+  "RamBytesAvailableToProcess": 16132538368
+}

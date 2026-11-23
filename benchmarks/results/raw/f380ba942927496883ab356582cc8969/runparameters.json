@@ -1,0 +1,18 @@
+{
+  "Seed": 1395107935,
+  "MaxRuns": 100,
+  "Solvers": [
+    "dfs_dual",
+    "dfs_dom",
+    "dfs_back_dom",
+    "dfs_eq",
+    "dfs_eq_weight"
+  ],
+  "VarsMin": 50,
+  "VarsMax": 200,
+  "OutDegreeMax": 2,
+  "OutputPath": "./f380ba942927496883ab356582cc8969/",
+  "CancellationSeconds": 600,
+  "MinMillisecondsToElapse": 1000,
+  "MinTimesToRun": 3
+}

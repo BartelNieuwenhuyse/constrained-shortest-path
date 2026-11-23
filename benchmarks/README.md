@@ -1,0 +1,147 @@
+# Benchmark runner for layered-DAG DCSP
+
+This directory contains the benchmarking application for the delay-constrained shortest path solvers implemented for layered DAGs. The goal of the runner is to generate many random instances, solve them with several algorithm variants, and record timings and algorithm metrics in a reproducible way.
+
+This documentation describes the measurement harness, not the reference algorithm implementation also living in this folder. The novel solver implementation lives in the [src/](../src/) directory. These reference and novel algorithms are described in the [docs/](../docs/) directory. Here the problem generation, benchmark and instrumentation execution, and result collection is described.
+
+## What the runner does
+
+For each benchmark run, the benchmark application:
+
+- generates a random layered DAG
+- assigns random edge weights and delays
+- picks a delay bound that makes the instance non-trivial but still meaningful
+- solves a dual relaxation to obtain a reference lambda / incumbent bound
+- runs each configured solver on the same generated instance
+- compares the returned feasibility and optimal weight across solvers
+- writes two semicolon-delimited CSVs: one with the problem data and one with the solver results
+- stores run metadata and run parameters in a per-run directory under the configured output path
+
+The benchmark is designed for empirical evaluation and performance comparison rather than formal proof.
+
+## Build
+
+Use the project file under the benchmark folder:
+
+```bash
+dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Benchmark
+```
+
+For instrumentation of algorithmic operations, use the Release configuration:
+
+```bash
+dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Release
+```
+
+For a validation-oriented build with extra assertions and verbose diagnostics, use the debug configuration:
+
+```bash
+dotnet build benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Debug
+```
+
+The build configuration controls the compile-time flags defined in [Directory.Build.props](Directory.Build.props):
+
+- Debug: `TEST`, `PRINT_PROGRESS`, `INSTRUMENTATION`
+- Release: `PRINT_PROGRESS`, `INSTRUMENTATION`
+- Benchmark:
+
+## Run
+
+The runner accepts an optional configuration path as its first positional argument. If no path is supplied, it looks for `runsettings.json` in the current working directory.
+
+```bash
+cd benchmarks/CSP/DCSP-lDAGs
+dotnet run -c Release --
+```
+
+or, from the repository root:
+
+```bash
+dotnet run --project benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Release -- benchmarks/CSP/DCSP-lDAGs/runsettings.json
+```
+
+Optional CLI flag:
+
+- `--verbose`: enables extra console output; supported only in `TEST` builds (`Debug`)
+
+Note that `TEST` builds (`Debug`) are meant for validation: they check algorithm invariants, do not repeat runs for timing and do not write any output files.
+
+## Configuration file
+
+The runner reads a JSON object using case-insensitive property names, so `camelCase` and `PascalCase` keys both work. The shipped [runsettings.json](CSP/DCSP-lDAGs/runsettings.json) contains example values; properties that are omitted fall back to the defaults listed below.
+
+```json
+{
+  "seed": null,
+  "solvers": [
+    "dfs_dual",
+    "dfs_dom",
+    "dfs_back_dom",
+    "dfs_eq",
+    "dfs_eq_weight"
+  ],
+  "outputPath": "./",
+  "cancellationSeconds": 600,
+  "minMillisecondsToElapse": 1000,
+  "minTimesToRun": 3
+}
+```
+
+Key fields:
+
+- `seed`: random seed used for reproducible generation. If omitted or set to null, a random seed is chosen.
+- `maxRuns`: maximum number of graph instances to generate; default is `int.MaxValue` when not specified.
+- `solvers`: list of solver names to benchmark. Defaults to an empty list (no solvers) in `Release` and `Benchmark` builds. The dual solver (`kelley_pd`) always runs first on every instance, as its lambda and incumbent are input to `dfs_dual`; it cannot be selected here.
+- `varsMin`: minimum graph height for generated instances; default is 50 (5 in `Debug`).
+- `varsMax`: maximum graph height for generated instances; default is 500 (10 in `Debug`).
+- `outDegreeMax`: maximum number of edges out of any node in the generated graph instances (minimal = 1); default is 3.
+- `outputPath`: directory where the CSV output and run metadata are written; default is `./`.
+- `cancellationSeconds`: timeout for each solver invocation; default is 600.
+- `minMillisecondsToElapse`: minimum elapsed measurement before the runner stops repeating a solver; default is 1000.
+- `minTimesToRun`: minimum repeat count before the runner stops repeating a solver; default is 3.
+
+The available solver names are described in the [benchmarks](../docs/CSP/Benchmarks.md) documentation page.
+
+## Output
+
+The benchmark application creates a unique run directory under `outputPath` and writes semicolon-separated CSV files named `Instances.csv` and `DelayConstraintShortestPath.csv` into this directory. It also writes `metadata.json` and `runparameters.json`. The latter contains the full parameter set used for that run.
+
+### Instances.csv
+
+Each row records:
+
+- graph topology: node count, edge count, layer width, number of layers
+- instance difficulty: weight-delay correlation, powers used to skew weight and delay, delay constraint limit, least delay, and delay along the shortest-weight path
+- solution quality: unconstrained shortest weight, dual incumbent, dual solution, and the optimal solution reported by the solvers
+
+### DelayConstraintShortestPath.csv
+
+Each row records:
+
+- solver timings: per solver mean run time, standard deviation of runs, elapsed time, run count, and timeout flag
+
+When `INSTRUMENTATION` is enabled, additional columns are appended for:
+
+- iterations
+- number of labels
+- number of paths
+- number of operations
+
+### metadata.json
+
+- run ID
+- UTC timestamp
+- Git revision (`CommitSha`)
+- build configuration
+- target framework
+- runtime and OS information
+- CPU count and available memory
+
+## Validation model
+
+The benchmark is not a formal unit-test suite. It relies on randomized validation:
+
+- differential testing: all exact solvers for the same instance must agree on feasibility and optimal cost
+- invariant checks: in `TEST` builds, the code asserts structural properties of the algorithms during execution
+
+This is intended to catch logic errors and inconsistent semantics during development; it is an empirical validation strategy rather than a mathematical proof.
