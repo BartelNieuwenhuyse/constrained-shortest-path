@@ -29,7 +29,7 @@ The pruning rules are defined in [Pruning](Labeling.md#pruning): `f` = feasibili
 
 ## Results
 
-The full results can be found in the [result](../../benchmarks/results/raw/) folder. There you can also find benchmark parameters and the environment on which it was run.
+The full results can be found in the [result](../../benchmarks/results/raw/) folder. There you can also find benchmark parameters and the environment on which it was run. Run times are taken from the `Benchmark` build run (`f380ba94...`) and label counts from the `Release` build run (`642cb53a...`); both used the same seed and instances.
 
 ### Graph instances
 
@@ -116,35 +116,10 @@ Label count:
 | 14 | 2 137 | 8 976 433 | 3 408 107 | - | 1 655 053 |
 | 18 | 171 | 25 125 | 21 484 | - | 21 032 |
 
-The **dual-based solver** (`kelley_pd` combined with `dfs_dual`)
-outperforms the direct search variants, often by orders of magnitude,
-in our delay-constrained setting. Solving the dual over a single
-constraint is a relatively easy problem: Kelley's method converges in
-13–17 cuts on *all* instances, independent of size, and the remaining
-duality gap is small. Together with the data-structure-free depth-first
-search, this explains `dfs_dual`'s performance. Open questions remain
-in how far the other solvers can close the gap when combined with
-Lagrangian pruning (or merely warm-started with the dual incumbent),
-and in how far this carries over to multiple resources, where the dual
-becomes harder to solve and duality gaps grow — though label setting
-suffers from exponential growth there as well.
+The **dual-based solver** (`kelley_pd` combined with `dfs_dual`) outperforms the direct search variants, often by orders of magnitude, in our delay-constrained setting. Solving the dual over a single constraint is a relatively easy problem: Kelley's method converges in 12–17 cuts on all instances, independent of size, and the remaining duality gap is small. Together with the data-structure-free depth-first search, this explains `dfs_dual`'s performance. Open questions remain in how far the other solvers can close the gap when combined with Lagrangian pruning (or merely warm-started with the dual incumbent), and in how far this carries over to multiple resources, where the dual becomes harder to solve and duality gaps grow — though label setting suffers from exponential growth there as well.
 
-Comparing the two **dominance-based solvers**, backward dominance
-uses 1.2–3.4× fewer labels, with the largest gains on the hardest
-instances (#4, #9, #12, #14). On the two easiest instances (#2, #18)
-fewer labels does not translate into faster runs — the post-recursion implementation (first recurse all edges, then derive the dominators)  adds overhead.
+Comparing the two **dominance-based solvers**, backward dominance uses 1.2–3.4× fewer labels, with the largest gains on the hardest instances (#4, #9, #12, #14). On the two easiest instances (#2, #18) fewer labels does not translate into faster runs — the post-recursion implementation (first recurse all edges, then derive the dominators) adds overhead.
 
-Comparing the two **dominance based solvers** (`dfs_dom` and `dfs_back_dom`), backward dominance consistently beats forward dominance (~2–3× fewer labels). Showing the strength of back propagating dominance and earlier pruning.
+**Delay completion equivalence** (`dfs_eq`) is the weakest of the dfs group: it exceeds the timeout on 5 of 7 instances (#2, #9, #12, #14, #18), including the two easiest ones (#2 and #18), which all other solvers solve in milliseconds. It is conceptually clean but not competitive.
 
-**Delay completion equivalence** (`dfs_eq`) is the weakest of the dfs
-group: it exceeds the timeout on 5 of 7 instances, including the two
-smallest ones. It is conceptually clean but not competitive.
-
-**Weight completion equivalence** (`dfs_eq_weight`) is the strongest
-direct solver, 5–19× fewer labels than forward dominance. It is
-outperformed on #2 and #18, with #3 a near-tie. These are the loosest
-tightness values in the set (δ ≥ 0.79), and the cases expose the
-missing incumbent-based weight pruning: with a small *absolute*
-optimality gap a good incumbent prunes the feasible space aggressively,
-while `dfs_eq_weight` must map the entire feasible space. Adding
-incumbent-driven interval truncation is the obvious next step.
+**Weight completion equivalence** (`dfs_eq_weight`) is the strongest direct solver, 5–19× fewer labels than forward dominance on the four hardest instances (#4, #9, #12, #14). It is outperformed on #2 and #18, with #3 a near-tie. Instances #2 and #18 have the loosest tightness values in the set (≥ 0.9), and the cases expose the missing incumbent-based weight pruning: with a small *absolute* optimality gap a good incumbent prunes the feasible space aggressively, while `dfs_eq_weight` must map the entire feasible space. Adding incumbent-driven interval truncation is the obvious next step.

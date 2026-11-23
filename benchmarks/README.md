@@ -2,7 +2,7 @@
 
 This directory contains the benchmarking application for the delay-constrained shortest path solvers implemented for layered DAGs. The goal of the runner is to generate many random instances, solve them with several algorithm variants, and record timings and algorithm metrics in a reproducible way.
 
-This documentation describes the measurement harness, not the reference algorithm implementation also living in this folder. The novel solver implementation lives in the [src/](../src/) directory. These reference and novel algorithms are described in the [docs/](../docs/) directory. Here the problem generation, benchmark and instrumentation execution, and result collection is desribed.
+This documentation describes the measurement harness, not the reference algorithm implementation also living in this folder. The novel solver implementation lives in the [src/](../src/) directory. These reference and novel algorithms are described in the [docs/](../docs/) directory. Here the problem generation, benchmark and instrumentation execution, and result collection is described.
 
 ## What the runner does
 
@@ -64,9 +64,11 @@ Optional CLI flag:
 
 - `--verbose`: enables extra console output; supported only in `TEST` builds (`Debug`)
 
+Note that `TEST` builds (`Debug`) are meant for validation: they check algorithm invariants, do not repeat runs for timing and do not write any output files.
+
 ## Configuration file
 
-The runner reads a JSON object using case-insensitive property names, so `camelCase` and `PascalCase` keys both work. The shipped [runsettings.json](CSP/DCSP-lDAGs/runsettings.json) contains the default values:
+The runner reads a JSON object using case-insensitive property names, so `camelCase` and `PascalCase` keys both work. The shipped [runsettings.json](CSP/DCSP-lDAGs/runsettings.json) contains example values; properties that are omitted fall back to the defaults listed below.
 
 ```json
 {
@@ -89,16 +91,16 @@ Key fields:
 
 - `seed`: random seed used for reproducible generation. If omitted or set to null, a random seed is chosen.
 - `maxRuns`: maximum number of graph instances to generate; default is `int.MaxValue` when not specified.
-- `solvers`: list of solver names to benchmark.
-- `varsMin`: minimum graph height for generated instances.
-- `varsMax`: maximum graph height for generated instances.
-- `outDegreeMax`: maximum number of edges out of any node in the generated graph instances (minimal = 1).
-- `outputPath`: directory where the CSV output and run metadata are written.
-- `cancellationSeconds`: timeout for each solver invocation.
-- `minMillisecondsToElapse`: minimum elapsed measurement before the runner stops repeating a solver.
-- `minTimesToRun`: minimum repeat count before the runner stops repeating a solver.
+- `solvers`: list of solver names to benchmark. Defaults to an empty list (no solvers) in `Release` and `Benchmark` builds. The dual solver (`kelley_pd`) always runs first on every instance, as its lambda and incumbent are input to `dfs_dual`; it cannot be selected here.
+- `varsMin`: minimum graph height for generated instances; default is 50 (5 in `Debug`).
+- `varsMax`: maximum graph height for generated instances; default is 500 (10 in `Debug`).
+- `outDegreeMax`: maximum number of edges out of any node in the generated graph instances (minimal = 1); default is 3.
+- `outputPath`: directory where the CSV output and run metadata are written; default is `./`.
+- `cancellationSeconds`: timeout for each solver invocation; default is 600.
+- `minMillisecondsToElapse`: minimum elapsed measurement before the runner stops repeating a solver; default is 1000.
+- `minTimesToRun`: minimum repeat count before the runner stops repeating a solver; default is 3.
 
-The available solver names can be found in the [benchmarks](../docs/CSP/Benchmarks.md) documentation page.
+The available solver names are described in the [benchmarks](../docs/CSP/Benchmarks.md) documentation page.
 
 ## Output
 

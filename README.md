@@ -52,7 +52,7 @@ dotnet build benchmarks/Benchmarks.slnx --configuration Benchmark
 Each benchmark console generates random layered DAGs with random edge weights and delays, and writes results as CSV to a file. Parameters are passed in through a json settings file. Read about the parameters and output in the benchmark's [README](benchmarks/README.md).
 
 ```bash
-dotnet run --project benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG -- runsettings.json
+dotnet run --project benchmarks/CSP/DCSP-lDAGs/DCSP-lDAG.csproj -c Benchmark -- benchmarks/CSP/DCSP-lDAGs/runsettings.json
 ```
 
 ### Build configurations

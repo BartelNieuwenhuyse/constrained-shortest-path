@@ -40,7 +40,7 @@ We propose two novel pruning rules specifically in the context of depth first or
 
 [Read more](Labeling-DFS.md) about these new pruning techniques.
 
-Note that pruning on bounds and feasibility require a backward shortest-path calculations to get the least delay and shortest weight paths from each node to the terminal. This initialization phase preceeds the actual label setting recursion:
+Note that pruning on bounds and feasibility require a backward shortest-path calculations to get the least delay and shortest weight paths from each node to the terminal. This initialization phase precedes the actual label setting recursion:
 
 ```text
 initialization:

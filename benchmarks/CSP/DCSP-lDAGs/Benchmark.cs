@@ -146,7 +146,8 @@ internal class Benchmark
                     bool IsCancelled = false;
                     double mean = 0.0;       // running mean
                     double m2 = 0.0;         // sum of squared deviations from the running mean
-                    long ElapsedMilliseconds = 0; 
+                    long ElapsedMilliseconds = 0;
+                    solution = null;
                     do
                     {
                         Input input = new Input()
@@ -239,7 +240,7 @@ internal class Benchmark
                     bool IsCancelled = false;
                     double mean = 0.0;       // running mean
                     double m2 = 0.0;         // sum of squared deviations from the running mean
-                    long ElapsedMilliseconds = 0; 
+                    long ElapsedMilliseconds = 0;
                     solution = null;
                     do
                     {

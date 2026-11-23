@@ -171,7 +171,7 @@ public sealed class LabelingDFSSolver : BaseSolver
     /// find the optimal solution (or proof optimality of the solution)
     /// by enumerating paths in depth first traversal order
     ///     whose lower bound is smaller than the upper bound
-    ///         lower bound = aggregate cost (weight + lambda * (delay - lambda * max_delay) 
+    ///         lower bound = aggregate cost (weight + lambda * (delay - max_delay))
     ///         upper bound = smallest weight found so far
     ///     with feasible delay (delay <= max_delay)
     ///     and better primal weight (weight <= smallest weight found so far)
@@ -248,7 +248,7 @@ public sealed class LabelingDFSSolver : BaseSolver
                                 );
         }
 
-        // calcate the shortest node-to-terminal distances
+        // calculate the shortest node-to-terminal distances
         // in distance metric (weight + lambda * delay)
         // to be used for Lagrangian bound pruning (label's weight + lambda * label's delay + least_cost_to_terminal > _upper_bound_weight + lambda * max_delay)
         (_, int weight_of_cost_path, int delay_of_cost_path) = shortest_cost_from_terminal(lambda, cost_to_terminal, path);

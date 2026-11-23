@@ -106,7 +106,7 @@ public sealed class DualCuttingPlaneSolver : BaseDualSolver
             // calculate shortest aggregated cost path with new lambda
             double path_aggregated_cost = shortest_cost(lambda);
 #if INSTRUMENTATION
-	    	++counters.number_of_paths; // path for new lambda estimate
+            ++counters.number_of_paths; // path for new lambda estimate
 #endif
             delay = path_delay_from_first_edge();
             int weight = path_weight_from_first_edge();

@@ -1,6 +1,6 @@
 # Lagrange dual for constrained shortest paths
 
-Lagrangian relaxation is a widely used relaxation method in constrained optimization. It has a long history in the constrained shortest path literature and remains a popular heuristic as well as a often used phase 1 to strengthen exact solving techniques.
+Lagrangian relaxation is a widely used relaxation method in constrained optimization. It has a long history in the constrained shortest path literature and remains a popular heuristic as well as an often used phase 1 to strengthen exact solving techniques.
 
 Lagrangian relaxation removes constraints and instead puts them into the objective function by applying a multiplier $\lambda$ that penalizes constraint violations. In the case of the constrained shortest path problem, this turns the problem into an unconstrained shortest path problem with modified cost structure.
 
@@ -38,11 +38,11 @@ This documentation describes the algorithms in this repository that solve the La
 
 ### LARAC
 
-This dual iteration algorithm was introduced by [Handler and Zang, 1980] for the delay-constrained shortest path problem. It later became widely known under the name LARAC, after [Jüttner et al., 2001] independently rediscovered it. It is the default standard algorithm to solve the dual problem in the delay-constraint shortest path literature. It's a specialization of kelley's cutting plane method.
+This dual iteration algorithm was introduced by [Handler and Zang, 1980] for the delay-constrained shortest path problem. It later became widely known under the name LARAC, after [Jüttner et al., 2001] independently rediscovered it. It is the default standard algorithm to solve the dual problem in the delay-constraint shortest path literature. It's a specialization of Kelley's cutting plane method.
 
 #### Base
 
-The base LARAC algorithm start with computing the two extreme paths: the shortest unconstrained weight path and the least delay path.
+The base LARAC algorithm starts with computing the two extreme paths: the shortest unconstrained weight path and the least delay path.
 
 ```text
 initialization:
@@ -78,7 +78,7 @@ Observe that there is no tie-breaking in the algorithm: if multiple paths have t
 
 Stabilizing LARAC by tie-breaking on the two extremes (least-delay and shortest-weight) is not new: [Kou et al. 2020] used a modified dijkstra algorithm to compute the two extremes among all equal cost paths.
 
-We propose a slightly different algorithmic approach, acknowledging that only one of the two extremes is required: first compute an arbitrary shortest cost path just like the algorithm without tie-breaking. If this path is delay-feasible, only the shortest weight extreme among all equal cost paths is relevant for the advance of the algorithm, while if the path is delay-infeasible, only the least delay extreme among all equal cost paths is relevant. After having solved the shortest cost path, we can extract the tie-breaking path (least delay or shortest weight) by solving a shortest path computation over the equality graph: only consider edges whose slack is zero. The slack of an edge is $`s(e_{vu}) = c_{\lambda}(e_{vu}) - (c_{\lambda}(p_{s \rightarrow u}) - c_{\lambda}(p_{s \rightarrow v}))`$ which is zero whever the edge $e_{vu}$ is a part of a shortest cost path from source to node $u$.
+We implement a slightly different algorithmic approach, acknowledging that only one of the two extremes is required: first compute an arbitrary shortest cost path just like the algorithm without tie-breaking. If this path is delay-feasible, only the shortest weight extreme among all equal cost paths is relevant for the advance of the algorithm, while if the path is delay-infeasible, only the least delay extreme among all equal cost paths is relevant. After having solved the shortest cost path, we can extract the tie-breaking path (least delay or shortest weight) by solving a shortest path computation over the equality graph: only consider edges whose slack is zero. The slack of an edge is $`s(e_{vu}) = c_{\lambda}(e_{vu}) - (c_{\lambda}(p_{s \rightarrow u}) - c_{\lambda}(p_{s \rightarrow v}))`$ which is zero whenever the edge $e_{vu}$ is a part of a shortest cost path from source to node $u$.
 
 ```text
 6   if d(cost_path) <= D:

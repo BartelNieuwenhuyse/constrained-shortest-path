@@ -115,7 +115,7 @@ We propose two new pruning rules that are used in label setting with a depth fir
 
 ## Benchmarking
 
-The different solvers are benchmarked on randomly generated graphs and input data. Results will be shared on the [Benchmarks](CSP/Benchmarks.md) page. The [benchmark/](../benchmarks/) directory explains the benchmark applications, their configuration, data generation and output.
+The different solvers are benchmarked on randomly generated graphs and input data. Results are shared on the [Benchmarks](CSP/Benchmarks.md) page. The [benchmarks/](../benchmarks/) directory explains the benchmark applications, their configuration, data generation and output.
 
 ## Documentation structure
 

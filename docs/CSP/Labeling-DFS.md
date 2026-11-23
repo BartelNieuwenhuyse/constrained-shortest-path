@@ -38,7 +38,7 @@ pre-expansion:
 
 ```text
 if label l' is feasible:
-  if label l' weight bound: 
+  if label l' within weight bound:
 ```
 
 Note: the original Pulse algorithm as described in [Lozano and Medaglia, 2013] limits the size of the non-dominated label set stored at each node and describes rules for which labels to remove from the storage when that limit would otherwise be exceeded. This is not part of our implementation, we store all non-dominated labels at each node.
@@ -59,7 +59,7 @@ if label l within Lagrangian bound:
 
 Dynamic programming is a long established technique to solve the constrained shortest path problem [Joksch, 1966]. Label setting is sometimes still called dynamic programming.
 
-The connection between dynamic programming and decison diagram (DD) compilation is also well known. See [Bergman et al. 2016] for a comprehensive overview. A decision diagram for a knapsack constraint can be build by running dynamic programming on the state-space as if you would solve the knapsack problem. The acyclic state-transition graph of the dynamic programming table is a binary decision diagram: it encodes all feasible solutions as paths on the graph. However, it is not a minimal decision diagram. An additional bottom-up minimization of the graph is required to detect and merge isomorphic subgraphs. [Behle, 2007] proposed an output-sensitive decision diagram compilation for a linear constraint $a^{T} \cdot x \le b$ which constructs a minimized decision diagram in one depth first traversal. [Tjandraatmadja, 2018] generalized this to other types of real valued functions $f(x) \le b$.
+The connection between dynamic programming and decision diagram (DD) compilation is also well known. See [Bergman et al. 2016] for a comprehensive overview. A decision diagram for a knapsack constraint can be built by running dynamic programming on the state-space as if you would solve the knapsack problem. The acyclic state-transition graph of the dynamic programming table is a binary decision diagram: it encodes all feasible solutions as paths on the graph. However, it is not a minimal decision diagram. An additional bottom-up minimization of the graph is required to detect and merge isomorphic subgraphs. [Behle, 2007] proposed an output-sensitive decision diagram compilation for a linear constraint $a^{T} \cdot x \le b$ which constructs a minimized decision diagram in one depth first traversal. [Tjandraatmadja, 2018] generalized this to other types of real valued functions $f(x) \le b$.
 
 Define the label transition graph as the graph emerging from applying label setting to the constrained shortest path problem. Each label that is not pruned is a node and the label expansions define the edges of the graph. This label transition graph encodes the subspace of efficient paths on the original graph. As with decision diagrams, the label transition graph is not minimal. Isomorphic subgraphs exist, in other words: more than one label has explored the same state-space. This hints at an opportunity to reduce the amount of label expansions.
 
@@ -74,14 +74,14 @@ This gives the following algorithm:
 initialization:
 
 ```text
-// initialize every node with an interval that captures infeasible 1 1 partial paths
-2 for every node v:
-3   insert interval [D - least_delay_to_terminal[n] + 1, +inf) with completion weight +inf
-4 for the terminal:
-5   insert interval [-inf, D + 1) with completion weight 0
+// initialize every node with an interval that captures infeasible partial paths
+1 for every node v:
+2   insert interval [D - least_delay_to_terminal[v] + 1, +inf) with completion weight +inf
+3 for the terminal:
+4   insert interval [-inf, D + 1) with completion weight 0
 ```
 
-Note: we use `+ 1` for the interval bounds, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
+Note: we use `+ 1` for the interval bounds, which is correct for integer delays. For the non-integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
 post-expansion:
 
@@ -104,7 +104,7 @@ L = max over all edges(successor L - edge.delay)
 
 The solution is the completion weight of the interval returned for label (0,0) at the source.
 
-By analogy to [Behle, 2007] the label transition graph emerging from this algorithm is an exact and minimal represenation of all feasible paths for the constrained path problem.
+By analogy to [Behle, 2007] the label transition graph emerging from this algorithm is an exact and minimal representation of all feasible paths for the constrained path problem.
 
 ### Weight completion equivalence
 
@@ -132,7 +132,7 @@ where `successor L>=W` is $`L_u^{\ge W}`$ as defined above: the lower bound of t
 
 Intervals in this variant are not static. The lower bound $L$ may initially be set too high (the interval too narrow) whenever $`L_u^{\ge W}`$ was only an upper-bound estimate $`\overline{U}_{u}^{\lt W}`$ rather than the exact $`U_u^{\lt W}`$. This happens in two cases: when no label with a lower delay has visited $u$ at all, or when the walk runs out of already-known intervals before reaching a failing interval. In either case $U$ stays the same, but $L$ is later superseded by a smaller $L$ once a label actually visits that gap and the true completion weight becomes known.
 
-A worked out example can be found in [example-1](examples/Example-1-DFS.md#Completion%20equivalence).
+A worked out example can be found in [example-1](examples/Example-1-DFS.md#completion-equivalence).
 
 ## Backward dominance pruning
 
@@ -169,15 +169,15 @@ Two special cases are added to accommodate feasibility and weight bound pruning:
 - *feasibility*: every node is initialized with (weight, delay) pair $(-\infty, D - \underline{d}(p_{v \rightarrow t}) + 1)$ in its dominator set.
 - *weight bound*: additionally, a label can be dominated by $(\overline{w}(p_{s \rightarrow t}) - \underline{w}(p_{v \rightarrow t}),-\infty)$ which is used as dominator for labels exceeding the weight bound.
 
-Note: we use `+ 1` for the feasibility dominator, which is correct for integer delays. For the none integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
+Note: we use `+ 1` for the feasibility dominator, which is correct for integer delays. For the non-integer case, a small $\epsilon$ could be used which should be $0 \lt \epsilon$ and smaller than the smallest non-zero delay of any edge.
 
 We calculate the dominator after all expansions. When multiple edges visit the same successor, a dominator inserted during one edge's recursion may be superseded by a stronger one when the other edge visits the same successor. This is especially important to handle the case when edges visiting the successor dominate each other: $w(e_{vu}) \le w(e^{\prime}_{vu})\ and\ d(e_{vu}) \le d(e^{\prime}_{vu})$.
 
-A worked out example can be found in [example-1](examples/Example-1-DFS.md#Dominance%20vs.%20backward%20dominance).
+A worked out example can be found in [example-1](examples/Example-1-DFS.md#dominance-vs-backward-dominance).
 
 ## Future work
 
-- Combine completion equivalence pruning with pruning on the weight dimension (enabling pruning by backward dominance, weight bound and\or Lagrangian bound)
+- Combine completion equivalence pruning with pruning on the weight dimension (enabling pruning by backward dominance, weight bound and/or Lagrangian bound)
 - explain and implement bidirectional variant (biPulse, [Cabrera et al., 2020]) for comparison
 - Extend to general graphs and elementary path version with cycle detection
 - Connection between label transition graph and a 'decision diagram' that encodes all feasible paths of the constrained shortest path problem. Opportunity for further 'cross node' reduction and canonical weights [Hooker, 2013].
